@@ -5,8 +5,8 @@ exports.up = function (knex) {
         table.string('name', 255).notNullable();
         table.string('email', 255).notNullable().unique();
         table.string('password', 255).notNullable();
-        table.integer('last_login').nullable();
         table.string('phone', 255).notNullable().unique();
+        table.integer('last_login').nullable();
 
         table.timestamps(true, true);
     });

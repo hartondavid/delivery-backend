@@ -7,9 +7,23 @@ const router = Router();
 
 // Adaugă o rută nouă
 router.post('/addRoute', userAuthMiddleware, async (req, res) => {
-    const { area, admin_id } = req.body;
+
     try {
-        const [id] = await db('routes').insert({ area, admin_id });
+        const { area } = req.body;
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
+        const [id] = await db('routes').insert({ area, admin_id: userId });
         const route = await db('routes').where({ id }).first();
         return sendJsonResponse(res, true, 201, "Rută adăugată cu succes!", { route });
     } catch (error) {
@@ -19,9 +33,23 @@ router.post('/addRoute', userAuthMiddleware, async (req, res) => {
 
 // Actualizează o rută
 router.put('/updateRoute/:routeId', userAuthMiddleware, async (req, res) => {
-    const { routeId } = req.params;
-    const { area } = req.body;
+
     try {
+        const { routeId } = req.params;
+        const { area } = req.body;
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
         const route = await db('routes').where({ id: routeId }).first();
         if (!route) return sendJsonResponse(res, false, 404, "Rută inexistentă!", []);
         await db('routes').where({ id: routeId }).update({ area });
@@ -34,8 +62,21 @@ router.put('/updateRoute/:routeId', userAuthMiddleware, async (req, res) => {
 
 // Șterge o rută
 router.delete('/deleteRoute/:routeId', userAuthMiddleware, async (req, res) => {
-    const { routeId } = req.params;
+
     try {
+        const { routeId } = req.params;
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
         const route = await db('routes').where({ id: routeId }).first();
         if (!route) return sendJsonResponse(res, false, 404, "Rută inexistentă!", []);
         await db('routes').where({ id: routeId }).del();
@@ -45,20 +86,25 @@ router.delete('/deleteRoute/:routeId', userAuthMiddleware, async (req, res) => {
     }
 });
 
-// // Listare toate rutele
-// router.get('/getRoutes', userAuthMiddleware, async (req, res) => {
-//     try {
-//         const routes = await db('routes').select('*');
-//         return sendJsonResponse(res, true, 200, "Lista tuturor rutelor:", { routes });
-//     } catch (error) {
-//         return sendJsonResponse(res, false, 500, "Eroare la preluarea rutelor!", { details: error.message });
-//     }
-// });
-
 // Listare curieri pentru o rută
 router.get('/getCouriers/:routeId', userAuthMiddleware, async (req, res) => {
-    const { routeId } = req.params;
+
     try {
+        const { routeId } = req.params;
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
+
         const route = await db('routes').where({ id: routeId }).first();
         if (!route) return sendJsonResponse(res, false, 404, "Ruta nu există!", []);
         const curieri = await db('users').where({ route_id: routeId });
@@ -71,6 +117,20 @@ router.get('/getCouriers/:routeId', userAuthMiddleware, async (req, res) => {
 
 router.get('/getCouriersByAdminId', userAuthMiddleware, async (req, res) => {
     try {
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
+
         const routes = await db('routes')
             .where('routes.admin_id', req.user.id)
             .select('routes.*');
@@ -107,11 +167,21 @@ router.get('/getCouriersByAdminId', userAuthMiddleware, async (req, res) => {
 
 router.get('/getRoutesByCourierId', userAuthMiddleware, async (req, res) => {
     try {
-        const routes = await db('routes')
-            .join('user_routes', 'routes.id', 'user_routes.route_id')
-            .join('user_rights', 'user_routes.courier_id', 'user_rights.user_id')
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
+        const routes = await db('routes')
+            .join('user_routes', 'routes.id', 'user_routes.route_id')
             .where('user_routes.courier_id', req.user.id)
             .select('routes.*');
 
@@ -128,16 +198,22 @@ router.get('/getRoutesByCourierId', userAuthMiddleware, async (req, res) => {
 });
 
 router.post('/addCourierToRoute/:routeId', userAuthMiddleware, async (req, res) => {
-    const { courier_id } = req.body;
-    const userId = req.user?.id;
-    const routeId = req.params.routeId;
 
-    const userRights = await db('user_rights').where({ user_id: userId }).first();
-    const adminRole = userRights.right_id;
     try {
-        if (adminRole === 2) {
-            return sendJsonResponse(res, false, 403, "Doar administratorii pot adăuga curieri la rute!", []);
+        const { courier_id } = req.body;
+        const userId = req.user.id;
+        const routeId = req.params.routeId;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
+
         await db('user_routes').insert({ courier_id: courier_id, route_id: routeId });
         const courier = await db('users').where({ id: courier_id }).first();
         return sendJsonResponse(res, true, 200, "Curierul a fost adăugat la ruta!", { courier });
@@ -146,30 +222,27 @@ router.post('/addCourierToRoute/:routeId', userAuthMiddleware, async (req, res) 
     }
 });
 
-// router.delete('/deleteCourierFromRoute/:routeId', userAuthMiddleware, async (req, res) => {
-//     const { routeId } = req.params;
-//     const { courier_id } = req.body;
-//     try {
-//         const route = await db('routes').where({ id: routeId }).first();
-//         if (!route) return sendJsonResponse(res, false, 404, "Rută inexistentă!", []);
-//         await db('user_routes').where({ user_id: courier_id, route_id: routeId }).del();
-//         return sendJsonResponse(res, true, 200, `Curierul a fost șters de la ruta!`, []);
-//     } catch (error) {
-//         return sendJsonResponse(res, false, 500, "Eroare la ștergerea curierului de la ruta!", { details: error.message });
-//     }
-// });
-
-
 
 router.get('/getCouriersByRouteId/:routeId', userAuthMiddleware, async (req, res) => {
     try {
         const { routeId } = req.params;
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
         const couriers = await db('user_routes')
             .join('users', 'user_routes.courier_id', 'users.id')
             .join('routes', 'user_routes.route_id', 'routes.id')
             .where('user_routes.route_id', routeId)
-            .where('routes.admin_id', req.user.id)
-
             .select(
                 'users.id',
                 'users.name',

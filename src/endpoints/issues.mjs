@@ -6,20 +6,24 @@ import { userAuthMiddleware } from "../utils/middlewares/userAuthMiddleware.mjs"
 const router = Router();
 
 // Adaugă o problemă nouă
-router.post('/addIssue/:deliveryId', async (req, res) => {
-    const { description } = req.body;
-    const { deliveryId } = req.params;
-    const userId = req.user?.id;
-
-    const userRights = await db('user_rights')
-        .join('rights', 'user_rights.right_id', 'rights.id')
-        .where('rights.right_code', 2)
-        .first();
+router.post('/addIssue/:deliveryId', userAuthMiddleware, async (req, res) => {
 
     try {
+        const { description } = req.body;
+        const { deliveryId } = req.params;
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 2)
+            .where('user_rights.user_id', userId)
+            .first();
+
         if (!userRights) {
-            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat sa adaugati probleme!", []);
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
+
         const [id] = await db('issues').insert({ description, delivery_id: deliveryId });
 
         return sendJsonResponse(res, true, 201, "Problema a fost adăugată cu succes!", { id });
@@ -29,10 +33,25 @@ router.post('/addIssue/:deliveryId', async (req, res) => {
 });
 
 // Actualizează o problemă
-router.put('/updateIssue/:issueId', async (req, res) => {
-    const { issueId } = req.params;
-    const { description, delivery_id } = req.body;
+router.put('/updateIssue/:issueId', userAuthMiddleware, async (req, res) => {
+
     try {
+
+        const { issueId } = req.params;
+        const { description, delivery_id } = req.body;
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 2)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
         const issue = await db('issues').where({ id: issueId }).first();
         if (!issue) return sendJsonResponse(res, false, 404, "Problema nu există!", []);
         await db('issues').where({ id: issueId }).update({
@@ -47,18 +66,23 @@ router.put('/updateIssue/:issueId', async (req, res) => {
 });
 
 // Șterge o problemă
-router.delete('deleteIssue/:issueId', async (req, res) => {
-    const { issueId } = req.params;
-    try {
+router.delete('deleteIssue/:issueId', userAuthMiddleware, async (req, res) => {
 
-        const userRights = await db('user_rights').where({ user_id: req.user.id })
+    try {
+        const { issueId } = req.params;
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
-            .where('rights.right_code', 1)
+            .where('rights.right_code', 2)
+            .where('user_rights.user_id', userId)
             .first();
 
         if (!userRights) {
-            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat sa stergeti probleme!", []);
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
+
 
         const issue = await db('issues').where({ id: issueId }).first();
         if (!issue) return sendJsonResponse(res, false, 404, "Problema nu există!", []);
@@ -73,19 +97,21 @@ router.delete('deleteIssue/:issueId', async (req, res) => {
 router.get('/getIssuesByAdminId', userAuthMiddleware, async (req, res) => {
     try {
 
-        const userRights = await db('user_rights').where({ user_id: req.user.id })
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
             .first();
 
         if (!userRights) {
-            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat sa accesati aceasta pagina!", []);
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
         const issues = await db('issues')
             .join('delivery', 'issues.delivery_id', 'delivery.id')
             .join('users', 'delivery.courier_id', 'users.id')
-            .where('delivery.admin_id', req.user.id)
             .select('issues.*', 'users.name as courier_name', 'users.phone as courier_phone');
         return sendJsonResponse(res, true, 200, "Problemele au fost preluate cu succes!", issues);
     } catch (error) {
@@ -93,17 +119,22 @@ router.get('/getIssuesByAdminId', userAuthMiddleware, async (req, res) => {
     }
 });
 router.get('/getIssue/:issueId', userAuthMiddleware, async (req, res) => {
-    const { issueId } = req.params;
+
     try {
 
-        const userRights = await db('user_rights').where({ user_id: req.user.id })
+        const { issueId } = req.params;
+
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
+            .where('user_rights.user_id', userId)
             .first();
 
-
         if (!userRights) {
-            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat sa accesati aceasta pagina!", []);
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
 
@@ -129,13 +160,16 @@ router.get('/getIssue/:issueId', userAuthMiddleware, async (req, res) => {
 router.get('/getIssuesByCourierId', userAuthMiddleware, async (req, res) => {
     try {
 
-        const userRights = await db('user_rights').where({ user_id: req.user.id })
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
+            .where('user_rights.user_id', userId)
             .first();
 
         if (!userRights) {
-            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat sa accesati aceasta pagina!", []);
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
         const issues = await db('issues')

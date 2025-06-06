@@ -100,7 +100,6 @@ router.get('/getCouriers', userAuthMiddleware, async (req, res) => {
         const users = await db('users')
             .join('user_rights', 'users.id', 'user_rights.user_id')
             .where('user_rights.right_id', 2)
-            // .whereNotIn('users.id', db('delivery').select('courier_id'))
             .select('users.*');
 
         if (!users) return sendJsonResponse(res, false, 404, "Nu există curieri!", []);

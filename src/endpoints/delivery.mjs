@@ -6,10 +6,23 @@ import { userAuthMiddleware } from "../utils/middlewares/userAuthMiddleware.mjs"
 const router = Router();
 
 // Adaugă o livrare nouă
-router.post('/addDelivery', async (req, res) => {
+router.post('/addDelivery', userAuthMiddleware, async (req, res) => {
     try {
-        const { admin_id } = req.body;
-        const [id] = await db('delivery').insert({ admin_id });
+
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
+
+        const [id] = await db('delivery').insert({ admin_id: userId });
 
         const delivery = await db('delivery').where({ id }).first();
         return sendJsonResponse(res, true, 201, "Livrarea a fost adăugată cu succes!", delivery);
@@ -21,9 +34,20 @@ router.post('/addDelivery', async (req, res) => {
 
 router.get('/getDeliveriesByAdminId', userAuthMiddleware, async (req, res) => {
     try {
+        const userId = req.user.id;
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
         const deliveries = await db('delivery')
             .leftJoin('users', 'delivery.courier_id', 'users.id')
-            .where('delivery.admin_id', req.user.id)
             .select('delivery.*', 'users.name as courier_name');
 
         console.log('deliveries', deliveries);
@@ -58,12 +82,23 @@ router.get('/getDeliveriesByAdminId', userAuthMiddleware, async (req, res) => {
 
 router.get('/getDeliveriesByCourierId', userAuthMiddleware, async (req, res) => {
     try {
-        const deliveries = await db('delivery').
-            join('users', 'delivery.courier_id', 'users.id')
-            .join('user_rights', 'users.id', 'user_rights.user_id')
+
+        const userId = req.user.id;
+
+
+        const userRights = await db('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
-            .where('delivery.courier_id', req.user.id)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
+        const deliveries = await db('delivery').
+            join('users', 'delivery.courier_id', 'users.id')
+            .where('delivery.courier_id', userId)
             .select('delivery.*', 'users.name as courier_name');
 
         console.log('deliveries', deliveries);
@@ -94,9 +129,25 @@ router.get('/getDeliveriesByCourierId', userAuthMiddleware, async (req, res) => 
 });
 
 // Șterge o livrare
-router.delete('/deleteDelivery/:deliveryId', async (req, res) => {
-    const { deliveryId } = req.params;
+router.delete('/deleteDelivery/:deliveryId', userAuthMiddleware, async (req, res) => {
+
     try {
+
+        const { deliveryId } = req.params;
+
+        const userId = req.user.id;
+
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
         const delivery = await db('delivery').where({ id: deliveryId }).first();
         if (!delivery) return sendJsonResponse(res, false, 404, "Livrarea nu există!", []);
         await db('delivery').where({ id: deliveryId }).del();
@@ -107,10 +158,27 @@ router.delete('/deleteDelivery/:deliveryId', async (req, res) => {
 });
 
 // Adaugă o problemă la o livrare
-router.post('/addIssue/:deliveryId', async (req, res) => {
-    const { deliveryId } = req.params;
-    const { issueId } = req.body;
+router.post('/addIssue/:deliveryId', userAuthMiddleware, async (req, res) => {
+
     try {
+
+        const { deliveryId } = req.params;
+        const { issueId } = req.body;
+
+        const userId = req.user.id;
+
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 2)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
+
         const delivery = await db('delivery').where({ id: deliveryId }).first();
         const issue = await db('issues').where({ id: issueId }).first();
         if (!delivery || !issue) return sendJsonResponse(res, false, 404, "Livrarea sau problema nu există!", []);
@@ -145,7 +213,7 @@ router.post('/addOrdersToDelivery/:deliveryId', userAuthMiddleware, async (req, 
     }
 });
 
-router.post('/assignCourierToDelivery/:deliveryId', async (req, res) => {
+router.post('/assignCourierToDelivery/:deliveryId', userAuthMiddleware, async (req, res) => {
     const { deliveryId } = req.params;
     const { courier_id } = req.body;
     try {
