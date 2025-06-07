@@ -122,10 +122,10 @@ router.get('/getAllCouriersByAdminId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat sa accesati aceasta pagina!", []);
         }
 
-        const users = await db('routes')
-            .join('user_routes', 'routes.id', 'user_routes.route_id')
-            .join('users', 'user_routes.courier_id', 'users.id')
-            .where('routes.admin_id', req.user.id)
+        const users = await db('users')
+            .join('user_rights', 'users.id', 'user_rights.user_id')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 2)
             .select('users.*');
 
 

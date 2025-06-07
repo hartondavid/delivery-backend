@@ -4,8 +4,8 @@
   "description": "To make it easy for you to get started with GitLab, here's a list of recommended next steps.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.mjs",
-    "dev": "nodemon index.mjs"
+    "start": "node server.mjs",
+    "dev": "nodemon server.mjs"
   },
   "repository": {
     "type": "git",

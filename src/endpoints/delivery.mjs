@@ -50,7 +50,6 @@ router.get('/getDeliveriesByAdminId', userAuthMiddleware, async (req, res) => {
             .leftJoin('users', 'delivery.courier_id', 'users.id')
             .select('delivery.*', 'users.name as courier_name');
 
-        console.log('deliveries', deliveries);
 
         if (deliveries.length === 0) {
             return sendJsonResponse(res, true, 200, "Nu există livrări pentru acest curier.", []);
@@ -97,11 +96,11 @@ router.get('/getDeliveriesByCourierId', userAuthMiddleware, async (req, res) => 
         }
 
         const deliveries = await db('delivery').
-            join('users', 'delivery.courier_id', 'users.id')
+            leftJoin('users', 'delivery.courier_id', 'users.id')
             .where('delivery.courier_id', userId)
             .select('delivery.*', 'users.name as courier_name');
 
-        console.log('deliveries', deliveries);
+
         if (deliveries.length === 0) {
             return sendJsonResponse(res, true, 200, "Nu există livrări pentru acest curier.", []);
         }
@@ -151,26 +150,59 @@ router.delete('/deleteDelivery/:deliveryId', userAuthMiddleware, async (req, res
         const delivery = await db('delivery').where({ id: deliveryId }).first();
         if (!delivery) return sendJsonResponse(res, false, 404, "Livrarea nu există!", []);
         await db('delivery').where({ id: deliveryId }).del();
+
         return sendJsonResponse(res, true, 200, "Livrarea a fost ștearsă cu succes!", []);
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la ștergerea livrării!", { details: error.message });
     }
 });
 
-// Adaugă o problemă la o livrare
-router.post('/addIssue/:deliveryId', userAuthMiddleware, async (req, res) => {
+// // Adaugă o problemă la o livrare
+// router.post('/addIssue/:deliveryId', userAuthMiddleware, async (req, res) => {
+
+//     try {
+
+//         const { deliveryId } = req.params;
+//         const { issueId } = req.body;
+
+//         const userId = req.user.id;
+
+
+//         const userRights = await db('user_rights')
+//             .join('rights', 'user_rights.right_id', 'rights.id')
+//             .where('rights.right_code', 2)
+//             .where('user_rights.user_id', userId)
+//             .first();
+
+//         if (!userRights) {
+//             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+//         }
+
+
+//         const delivery = await db('delivery').where({ id: deliveryId }).first();
+//         const issue = await db('issues').where({ id: issueId }).first();
+//         if (!delivery || !issue) return sendJsonResponse(res, false, 404, "Livrarea sau problema nu există!", []);
+//         await db('delivery').where({ id: deliveryId }).update({ issue_id: issueId });
+//         const updated = await db('delivery').where({ id: deliveryId }).first();
+//         return sendJsonResponse(res, true, 200, `Problema a fost atribuită livrării ${deliveryId}!`, { delivery: updated });
+//     } catch (error) {
+//         return sendJsonResponse(res, false, 500, "Eroare la adăugarea problemei!", { details: error.message });
+//     }
+// });
+
+// Asociază mai multe comenzi la o livrare
+router.post('/addOrdersToDelivery/:deliveryId', userAuthMiddleware, async (req, res) => {
 
     try {
 
-        const { deliveryId } = req.params;
-        const { issueId } = req.body;
-
+        const { order_ids } = req.body;
         const userId = req.user.id;
+        const deliveryId = req.params.deliveryId;
 
 
         const userRights = await db('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
-            .where('rights.right_code', 2)
+            .where('rights.right_code', 1)
             .where('user_rights.user_id', userId)
             .first();
 
@@ -179,29 +211,6 @@ router.post('/addIssue/:deliveryId', userAuthMiddleware, async (req, res) => {
         }
 
 
-        const delivery = await db('delivery').where({ id: deliveryId }).first();
-        const issue = await db('issues').where({ id: issueId }).first();
-        if (!delivery || !issue) return sendJsonResponse(res, false, 404, "Livrarea sau problema nu există!", []);
-        await db('delivery').where({ id: deliveryId }).update({ issue_id: issueId });
-        const updated = await db('delivery').where({ id: deliveryId }).first();
-        return sendJsonResponse(res, true, 200, `Problema a fost atribuită livrării ${deliveryId}!`, { delivery: updated });
-    } catch (error) {
-        return sendJsonResponse(res, false, 500, "Eroare la adăugarea problemei!", { details: error.message });
-    }
-});
-
-// Asociază mai multe comenzi la o livrare
-router.post('/addOrdersToDelivery/:deliveryId', userAuthMiddleware, async (req, res) => {
-    const { order_ids } = req.body;
-    const userId = req.user?.id;
-    const deliveryId = req.params.deliveryId;
-
-    const userRights = await db('user_rights').where({ user_id: userId }).first();
-    const adminRole = userRights.right_id;
-    try {
-        if (adminRole === 2) {
-            return sendJsonResponse(res, false, 403, "Doar administratorii pot adăuga comenzi!", []);
-        }
         if (!Array.isArray(order_ids) || order_ids.length === 0) {
             return sendJsonResponse(res, false, 400, "Trebuie să selectezi cel puțin o comandă!", []);
         }
@@ -214,10 +223,26 @@ router.post('/addOrdersToDelivery/:deliveryId', userAuthMiddleware, async (req, 
 });
 
 router.post('/assignCourierToDelivery/:deliveryId', userAuthMiddleware, async (req, res) => {
-    const { deliveryId } = req.params;
-    const { courier_id } = req.body;
+
     try {
-        console.log('deliveryId:', deliveryId, 'courier_id:', courier_id);
+
+        const { deliveryId } = req.params;
+        const { courier_id } = req.body;
+
+
+        const userId = req.user.id;
+
+
+        const userRights = await db('user_rights')
+            .join('rights', 'user_rights.right_id', 'rights.id')
+            .where('rights.right_code', 1)
+            .where('user_rights.user_id', userId)
+            .first();
+
+        if (!userRights) {
+            return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
+        }
+
         const delivery = await db('delivery').where({ id: deliveryId }).first();
         const courier = await db('users').where({ id: courier_id }).first();
         if (!delivery || !courier) return sendJsonResponse(res, false, 404, "Livrarea sau curierul nu există!", []);
@@ -231,13 +256,13 @@ router.post('/assignCourierToDelivery/:deliveryId', userAuthMiddleware, async (r
 
 
 router.get('/searchDeliveryByCourierId', userAuthMiddleware, async (req, res) => {
-    const { searchField } = req.query;
-
-    if (!searchField) {
-        return sendJsonResponse(res, false, 400, 'Search field is required', null);
-    }
 
     try {
+        const { searchField } = req.query;
+
+        if (!searchField) {
+            return sendJsonResponse(res, false, 400, 'Search field is required', null);
+        }
 
         const userRights = await db('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')

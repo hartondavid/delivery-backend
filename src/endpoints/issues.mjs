@@ -66,7 +66,7 @@ router.put('/updateIssue/:issueId', userAuthMiddleware, async (req, res) => {
 });
 
 // Șterge o problemă
-router.delete('deleteIssue/:issueId', userAuthMiddleware, async (req, res) => {
+router.delete('/deleteIssue/:issueId', userAuthMiddleware, async (req, res) => {
 
     try {
         const { issueId } = req.params;

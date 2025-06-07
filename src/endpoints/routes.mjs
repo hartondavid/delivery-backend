@@ -79,7 +79,9 @@ router.delete('/deleteRoute/:routeId', userAuthMiddleware, async (req, res) => {
         }
         const route = await db('routes').where({ id: routeId }).first();
         if (!route) return sendJsonResponse(res, false, 404, "Rută inexistentă!", []);
+
         await db('routes').where({ id: routeId }).del();
+
         return sendJsonResponse(res, true, 200, `Rută cu ID-ul ${routeId} a fost ștearsă!`, []);
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la ștergerea rutei!", { details: error.message });
@@ -135,7 +137,6 @@ router.get('/getCouriersByAdminId', userAuthMiddleware, async (req, res) => {
             .where('routes.admin_id', req.user.id)
             .select('routes.*');
 
-        console.log('routes', routes);
 
         if (routes.length === 0) {
             return sendJsonResponse(res, true, 200, "Nu există curieri pentru această rută.", []);
@@ -185,7 +186,6 @@ router.get('/getRoutesByCourierId', userAuthMiddleware, async (req, res) => {
             .where('user_routes.courier_id', req.user.id)
             .select('routes.*');
 
-        console.log('routes', routes);
 
         if (routes.length === 0) {
             return sendJsonResponse(res, true, 200, "Nu există rute pentru acest curier.", []);
@@ -213,6 +213,7 @@ router.post('/addCourierToRoute/:routeId', userAuthMiddleware, async (req, res) 
         if (!userRights) {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
+
 
         await db('user_routes').insert({ courier_id: courier_id, route_id: routeId });
         const courier = await db('users').where({ id: courier_id }).first();

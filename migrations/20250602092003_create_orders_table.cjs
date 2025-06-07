@@ -9,7 +9,7 @@ exports.up = function (knex) {
         table.enum('status', ['pending', 'delivered', 'cancelled', 'issue']).defaultTo('pending');
 
         table.integer('delivery_id').unsigned().nullable()
-            .references('id').inTable('delivery').onDelete('CASCADE');
+            .references('id').inTable('delivery').onDelete('SET NULL');
         table.integer('admin_id').unsigned().notNullable()
             .references('id').inTable('users').onDelete('CASCADE');
 

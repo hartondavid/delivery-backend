@@ -83,7 +83,7 @@ router.delete('/deleteOrder/:orderId', userAuthMiddleware, async (req, res) => {
 
         const order = await db('orders').where({ id: orderId }).first();
         if (!order) return sendJsonResponse(res, false, 404, "Comanda nu există!", []);
-        await db('orders').where({ id: orderId }).update({ delivery_id: null });
+        await db('orders').where({ id: orderId }).del();
         return sendJsonResponse(res, true, 200, "Comanda a fost ștearsă cu succes!", []);
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la ștergerea comenzii!", { details: error.message });
