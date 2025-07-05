@@ -5,7 +5,7 @@ import { userAuthMiddleware } from "../utils/middlewares/userAuthMiddleware.mjs"
 
 const router = Router();
 
-// Adaugă o comandă nouă (doar admin)
+// Adaugă o comandă nouă 
 router.post('/addOrder', userAuthMiddleware, async (req, res) => {
 
     try {
