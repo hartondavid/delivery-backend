@@ -2,7 +2,7 @@
 import app from './index.mjs';
 import databaseManager from './src/utils/database.mjs';
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 8080;
 
 // Test database connection and run migrations on startup
 const startServer = async () => {
