@@ -1,8 +1,54 @@
-// Entry point for Amplify
-import app from './index.mjs';
-import databaseManager from './src/utils/database.mjs';
+// Entry point for Amplify - Simplified version for testing
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
 
+// Load environment variables
+dotenv.config();
+
+const app = express();
 const port = process.env.PORT || 8080;
+
+// Basic middleware
+app.use(cors({
+    origin: '*',
+    exposedHeaders: ['X-Auth-Token', 'X-Message', 'Content-Disposition'],
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Simple test route
+app.get('/test', (req, res) => {
+    res.json({
+        message: 'Test route working!',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'production'
+    });
+});
+
+// Root route
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Delivery Backend API',
+        version: '1.0.0',
+        status: 'running',
+        timestamp: new Date().toISOString(),
+        endpoints: {
+            test: '/test',
+            health: '/health'
+        }
+    });
+});
+
+// Health check route
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'production'
+    });
+});
 
 // Start server function
 const startServer = async () => {
@@ -12,37 +58,13 @@ const startServer = async () => {
         console.log(`🔧 Port: ${port}`);
         console.log(`📡 Host: 0.0.0.0`);
 
-        // Test database connection (but don't exit if it fails)
-        console.log('🔌 Testing database connection...');
-        try {
-            const dbConnected = await databaseManager.connect();
-            if (dbConnected) {
-                console.log('✅ Database connected successfully');
-
-                // Run migrations on startup (only in production)
-                if (process.env.NODE_ENV === 'production') {
-                    try {
-                        console.log('🔄 Running database migrations...');
-                        await databaseManager.runMigrations();
-                        console.log('✅ Migrations completed successfully');
-                    } catch (migrationError) {
-                        console.warn('⚠️ Migration failed, but continuing startup:', migrationError.message);
-                    }
-                }
-            } else {
-                console.warn('⚠️ Database connection failed, but continuing startup');
-            }
-        } catch (dbError) {
-            console.warn('⚠️ Database connection error, but continuing startup:', dbError.message);
-        }
-
         // Start the server
         const server = app.listen(port, '0.0.0.0', () => {
             console.log(`✅ Server is running on http://localhost:${port}`);
             console.log(`🌍 Environment: ${process.env.NODE_ENV || 'production'}`);
             console.log(`📊 Health check: http://localhost:${port}/health`);
             console.log(`🏠 Root endpoint: http://localhost:${port}/`);
-            console.log(`🔗 API endpoints: http://localhost:${port}/api/`);
+            console.log(`🔗 Test endpoint: http://localhost:${port}/test`);
         });
 
         // Add error handling for the server
@@ -56,24 +78,14 @@ const startServer = async () => {
         // Graceful shutdown
         process.on('SIGTERM', async () => {
             console.log('\n🔄 SIGTERM received, shutting down gracefully...');
-            server.close(async () => {
-                try {
-                    await databaseManager.disconnect();
-                } catch (error) {
-                    console.log('Database disconnect error:', error.message);
-                }
+            server.close(() => {
                 process.exit(0);
             });
         });
 
         process.on('SIGINT', async () => {
             console.log('\n🔄 SIGINT received, shutting down gracefully...');
-            server.close(async () => {
-                try {
-                    await databaseManager.disconnect();
-                } catch (error) {
-                    console.log('Database disconnect error:', error.message);
-                }
+            server.close(() => {
                 process.exit(0);
             });
         });
