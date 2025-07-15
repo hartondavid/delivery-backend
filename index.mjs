@@ -27,14 +27,45 @@ app.use(cors({
 // Run migrations before starting the server
 const runMigrations = async () => {
     try {
-        console.log('🔄 Running database migrations...');
+        console.log('🔄 Starting database setup...');
+
+        // First, test database connection
+        console.log('🔌 Testing database connection...');
+        const knex = await databaseManager.getKnex();
+        console.log('✅ Database connection successful');
+
+        // Check if database exists and show tables
+        try {
+            const tables = await knex.raw('SHOW TABLES');
+            console.log('📋 Existing tables:', tables[0].map(table => Object.values(table)[0]));
+        } catch (error) {
+            console.log('⚠️ Could not check tables:', error.message);
+        }
+
+        console.log('🔄 Running migrations...');
         await databaseManager.runMigrations();
         console.log('✅ Migrations completed successfully');
+
+        // Check tables after migrations
+        try {
+            const tablesAfter = await knex.raw('SHOW TABLES');
+            console.log('📋 Tables after migrations:', tablesAfter[0].map(table => Object.values(table)[0]));
+        } catch (error) {
+            console.log('⚠️ Could not check tables after migrations:', error.message);
+        }
 
         // Run seeds after migrations
         console.log('🌱 Running database seeds...');
         await databaseManager.runSeeds();
         console.log('✅ Seeds completed successfully');
+
+        // Check data after seeds
+        try {
+            const users = await knex('users').select('id', 'name', 'email');
+            console.log('👥 Users after seeds:', users);
+        } catch (error) {
+            console.log('⚠️ Could not check users after seeds:', error.message);
+        }
 
         return true;
     } catch (error) {

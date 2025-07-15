@@ -40,7 +40,15 @@ router.post('/login', async (req, res) => {
         // Set custom header
         res.set('X-Auth-Token', token);
 
-        return sendJsonResponse(res, true, 200, "Successfully logged in!", { user });
+        return sendJsonResponse(res, true, 200, "Successfully logged in!", {
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone
+            },
+            token: token
+        });
     } catch (error) {
         console.error("Login error:", error);
         return sendJsonResponse(res, false, 500, "Internal server error", []);
