@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.mjs",
     "dev": "nodemon server.mjs",
-    "build": "echo 'Build completed'",
+    "build": "echo 'Backend build completed - no compilation needed'",
     "migrate": "knex migrate:latest",
     "seed": "knex seed:run",
     "migrate:make": "knex migrate:make",

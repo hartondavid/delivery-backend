@@ -1,9 +1,12 @@
 version: 1
-backend:
+frontend:
   phases:
-    build:
+    preBuild:
       commands:
         - npm install
+    build:
+      commands:
+        - npm run build
         - npm run migrate
   artifacts:
     baseDirectory: /
