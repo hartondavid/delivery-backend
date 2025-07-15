@@ -1,7 +1,7 @@
 // server.mjs (handles starting the server)
 import app from './index.mjs';
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 8080; // Changed to 8080 for App Runner
 
 // Simplified server startup with debugging
 const startServer = async () => {
