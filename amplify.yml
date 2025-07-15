@@ -3,11 +3,14 @@ frontend:
   phases:
     preBuild:
       commands:
+        - echo "Installing dependencies..."
         - npm install
     build:
       commands:
-        - npm run build
-        - npm run migrate
+        - echo "Setting up backend application..."
+        - echo "No frontend build needed for backend-only app"
+        - echo "Skipping database migrations during build (will run on startup)"
+        - echo "Backend build completed"
   artifacts:
     baseDirectory: /
     files:

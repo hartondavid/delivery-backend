@@ -7,10 +7,9 @@
     "start": "node server.mjs",
     "dev": "nodemon server.mjs",
     "build": "echo 'Backend build completed - no compilation needed'",
-    "migrate": "knex migrate:latest",
-    "seed": "knex seed:run",
-    "migrate:make": "knex migrate:make",
-    "seed:make": "knex seed:make"
+    "migrate": "knex migrate:latest --knexfile knexfile.cjs",
+    "seed": "knex seed:run --knexfile knexfile.cjs",
+    "deploy": "npm run migrate && npm start"
   },
   "repository": {
     "type": "git",
