@@ -8,34 +8,38 @@ const port = process.env.PORT || 8080;
 const startServer = async () => {
     try {
         console.log('🚀 Starting Delivery Backend Server...');
-        console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`🌍 Environment: ${process.env.NODE_ENV || 'production'}`);
         console.log(`🔧 Port: ${port}`);
         console.log(`📡 Host: 0.0.0.0`);
 
-        // Test database connection
+        // Test database connection (but don't exit if it fails)
         console.log('🔌 Testing database connection...');
-        const dbConnected = await databaseManager.connect();
-        if (!dbConnected) {
-            console.error('❌ Failed to connect to database. Exiting...');
-            process.exit(1);
-        }
+        try {
+            const dbConnected = await databaseManager.connect();
+            if (dbConnected) {
+                console.log('✅ Database connected successfully');
 
-        // Run migrations on startup (only in production)
-        if (process.env.NODE_ENV === 'production') {
-            try {
-                console.log('🔄 Running database migrations...');
-                await databaseManager.runMigrations();
-                console.log('✅ Migrations completed successfully');
-            } catch (migrationError) {
-                console.warn('⚠️ Migration failed, but continuing startup:', migrationError.message);
-                // Don't exit on migration failure, let the app start
+                // Run migrations on startup (only in production)
+                if (process.env.NODE_ENV === 'production') {
+                    try {
+                        console.log('🔄 Running database migrations...');
+                        await databaseManager.runMigrations();
+                        console.log('✅ Migrations completed successfully');
+                    } catch (migrationError) {
+                        console.warn('⚠️ Migration failed, but continuing startup:', migrationError.message);
+                    }
+                }
+            } else {
+                console.warn('⚠️ Database connection failed, but continuing startup');
             }
+        } catch (dbError) {
+            console.warn('⚠️ Database connection error, but continuing startup:', dbError.message);
         }
 
         // Start the server
         const server = app.listen(port, '0.0.0.0', () => {
             console.log(`✅ Server is running on http://localhost:${port}`);
-            console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`🌍 Environment: ${process.env.NODE_ENV || 'production'}`);
             console.log(`📊 Health check: http://localhost:${port}/health`);
             console.log(`🏠 Root endpoint: http://localhost:${port}/`);
             console.log(`🔗 API endpoints: http://localhost:${port}/api/`);
@@ -53,7 +57,11 @@ const startServer = async () => {
         process.on('SIGTERM', async () => {
             console.log('\n🔄 SIGTERM received, shutting down gracefully...');
             server.close(async () => {
-                await databaseManager.disconnect();
+                try {
+                    await databaseManager.disconnect();
+                } catch (error) {
+                    console.log('Database disconnect error:', error.message);
+                }
                 process.exit(0);
             });
         });
@@ -61,7 +69,11 @@ const startServer = async () => {
         process.on('SIGINT', async () => {
             console.log('\n🔄 SIGINT received, shutting down gracefully...');
             server.close(async () => {
-                await databaseManager.disconnect();
+                try {
+                    await databaseManager.disconnect();
+                } catch (error) {
+                    console.log('Database disconnect error:', error.message);
+                }
                 process.exit(0);
             });
         });

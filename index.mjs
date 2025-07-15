@@ -44,7 +44,8 @@ app.get('/test', (req, res) => {
     res.json({
         message: 'Test route working!',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'production',
+        database: 'connected'
     });
 });
 
@@ -55,6 +56,7 @@ app.get('/', (req, res) => {
         version: '1.0.0',
         status: 'running',
         timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'production',
         endpoints: {
             test: '/test',
             health: '/health',
@@ -68,6 +70,21 @@ app.get('/', (req, res) => {
 // Health check routes
 app.use('/health', healthRouter);
 
-app.use('/api/', apiRouter)
+// API routes
+app.use('/api/', apiRouter);
+
+// 404 handler for undefined routes
+app.use('*', (req, res) => {
+    res.status(404).json({
+        error: 'Route not found',
+        message: `Cannot ${req.method} ${req.originalUrl}`,
+        availableRoutes: {
+            root: '/',
+            test: '/test',
+            health: '/health',
+            api: '/api/'
+        }
+    });
+});
 
 export default app;

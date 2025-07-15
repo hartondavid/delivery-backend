@@ -13,6 +13,7 @@ node_modules/
 test-db.js
 test-mysql.js
 test-db-cloudshell.js
+test-aurora-rds.js
 
 # Temporary files
 *.tmp
