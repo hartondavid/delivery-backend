@@ -17,7 +17,7 @@ export const userAuthMiddleware = async (req, res, next) => {
         const userId = decodedToken.id;
 
         // Fetch the user from the database based on the ID from the token
-        const user = await databaseManager.getKnex()('users').where({ id: userId }).first();
+        const user = await (await databaseManager.getKnex())('users').where({ id: userId }).first();
 
 
 

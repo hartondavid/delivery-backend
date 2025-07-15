@@ -7,7 +7,7 @@ const router = Router();
 
 router.get('/getUserRights', userAuthMiddleware, async (req, res) => {
     try {
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ user_id: req.user.id })
             .select(

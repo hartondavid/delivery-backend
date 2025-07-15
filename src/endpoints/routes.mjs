@@ -13,7 +13,7 @@ router.post('/addRoute', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -22,8 +22,8 @@ router.post('/addRoute', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const [id] = await databaseManager.getKnex()('routes').insert({ area, admin_id: userId });
-        const route = await databaseManager.getKnex()('routes').where({ id }).first();
+        const [id] = await (await databaseManager.getKnex())('routes').insert({ area, admin_id: userId });
+        const route = await (await databaseManager.getKnex())('routes').where({ id }).first();
         return sendJsonResponse(res, true, 201, "Rută adăugată cu succes!", { route });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la adăugarea rutei!", { details: error.message });
@@ -39,7 +39,7 @@ router.put('/updateRoute/:routeId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -48,10 +48,10 @@ router.put('/updateRoute/:routeId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const route = await databaseManager.getKnex()('routes').where({ id: routeId }).first();
+        const route = await (await databaseManager.getKnex())('routes').where({ id: routeId }).first();
         if (!route) return sendJsonResponse(res, false, 404, "Rută inexistentă!", []);
-        await databaseManager.getKnex()('routes').where({ id: routeId }).update({ area });
-        const updated = await databaseManager.getKnex()('routes').where({ id: routeId }).first();
+        await (await databaseManager.getKnex())('routes').where({ id: routeId }).update({ area });
+        const updated = await (await databaseManager.getKnex())('routes').where({ id: routeId }).first();
         return sendJsonResponse(res, true, 200, "Rută actualizată cu succes!", { route: updated });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la actualizarea rutei!", { details: error.message });
@@ -66,7 +66,7 @@ router.delete('/deleteRoute/:routeId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -74,10 +74,10 @@ router.delete('/deleteRoute/:routeId', userAuthMiddleware, async (req, res) => {
         if (!userRights) {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
-        const route = await databaseManager.getKnex()('routes').where({ id: routeId }).first();
+        const route = await (await databaseManager.getKnex())('routes').where({ id: routeId }).first();
         if (!route) return sendJsonResponse(res, false, 404, "Rută inexistentă!", []);
 
-        await databaseManager.getKnex()('routes').where({ id: routeId }).del();
+        await (await databaseManager.getKnex())('routes').where({ id: routeId }).del();
 
         return sendJsonResponse(res, true, 200, `Rută cu ID-ul ${routeId} a fost ștearsă!`, []);
     } catch (error) {
@@ -93,7 +93,7 @@ router.get('/getCouriers/:routeId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -103,9 +103,9 @@ router.get('/getCouriers/:routeId', userAuthMiddleware, async (req, res) => {
         }
 
 
-        const route = await databaseManager.getKnex()('routes').where({ id: routeId }).first();
+        const route = await (await databaseManager.getKnex())('routes').where({ id: routeId }).first();
         if (!route) return sendJsonResponse(res, false, 404, "Ruta nu există!", []);
-        const curieri = await databaseManager.getKnex()('users').where({ route_id: routeId });
+        const curieri = await (await databaseManager.getKnex())('users').where({ route_id: routeId });
         return sendJsonResponse(res, true, 200, `Lista curierilor pentru ruta ${route.area}:`, { curieri });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la preluarea curierilor!", { details: error.message });
@@ -118,7 +118,7 @@ router.get('/getCouriersByAdminId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -128,7 +128,7 @@ router.get('/getCouriersByAdminId', userAuthMiddleware, async (req, res) => {
         }
 
 
-        const routes = await databaseManager.getKnex()('routes')
+        const routes = await (await databaseManager.getKnex())('routes')
             .where({ admin_id: userId })
             .select('*');
 
@@ -138,7 +138,7 @@ router.get('/getCouriersByAdminId', userAuthMiddleware, async (req, res) => {
         }
 
         const results = await Promise.all(routes.map(async route => {
-            const couriers = await databaseManager.getKnex()('user_routes')
+            const couriers = await (await databaseManager.getKnex())('user_routes')
                 .leftJoin('users', 'user_routes.courier_id', 'users.id')
                 .join('user_rights', 'users.id', 'user_rights.user_id')
                 .join('rights', 'user_rights.right_id', 'rights.id')
@@ -165,7 +165,7 @@ router.get('/getRoutesByCourierId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
             .first();
@@ -174,7 +174,7 @@ router.get('/getRoutesByCourierId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const routes = await databaseManager.getKnex()('routes')
+        const routes = await (await databaseManager.getKnex())('routes')
             .join('user_routes', 'routes.id', 'user_routes.route_id')
             .where({ 'user_routes.courier_id': userId })
             .select('routes.*');
@@ -197,7 +197,7 @@ router.post('/addCourierToRoute/:routeId', userAuthMiddleware, async (req, res) 
         const userId = req.user.id;
         const routeId = req.params.routeId;
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -207,8 +207,8 @@ router.post('/addCourierToRoute/:routeId', userAuthMiddleware, async (req, res) 
         }
 
 
-        await databaseManager.getKnex()('user_routes').insert({ courier_id: courier_id, route_id: routeId });
-        const courier = await databaseManager.getKnex()('users').where({ id: courier_id }).first();
+        await (await databaseManager.getKnex())('user_routes').insert({ courier_id: courier_id, route_id: routeId });
+        const courier = await (await databaseManager.getKnex())('users').where({ id: courier_id }).first();
         return sendJsonResponse(res, true, 200, "Curierul a fost adăugat la ruta!", { courier });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la adăugarea curierului la ruta!", { details: error.message });
@@ -222,7 +222,7 @@ router.get('/getCouriersByRouteId/:routeId', userAuthMiddleware, async (req, res
 
         const userId = req.user.id;
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -231,7 +231,7 @@ router.get('/getCouriersByRouteId/:routeId', userAuthMiddleware, async (req, res
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const couriers = await databaseManager.getKnex()('user_routes')
+        const couriers = await (await databaseManager.getKnex())('user_routes')
             .join('users', 'user_routes.courier_id', 'users.id')
             .join('routes', 'user_routes.route_id', 'routes.id')
             .where({ 'user_routes.route_id': routeId })
@@ -239,7 +239,9 @@ router.get('/getCouriersByRouteId/:routeId', userAuthMiddleware, async (req, res
                 'users.id',
                 'users.name',
                 'users.email',
-            )
+                'users.phone',
+                'routes.area'
+            );
         if (couriers.length === 0) {
             return sendJsonResponse(res, false, 404, 'Nu există curieri!', []);
         }

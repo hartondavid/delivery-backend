@@ -11,7 +11,7 @@ router.post('/addDelivery', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -21,9 +21,9 @@ router.post('/addDelivery', userAuthMiddleware, async (req, res) => {
         }
 
 
-        const [id] = await databaseManager.getKnex()('delivery').insert({ admin_id: userId });
+        const [id] = await (await databaseManager.getKnex())('delivery').insert({ admin_id: userId });
 
-        const delivery = await databaseManager.getKnex()('delivery').where({ id }).first();
+        const delivery = await (await databaseManager.getKnex())('delivery').where({ id }).first();
         return sendJsonResponse(res, true, 201, "Livrarea a fost adăugată cu succes!", delivery);
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la adăugarea livrării!", { details: error.message });
@@ -35,7 +35,7 @@ router.get('/getDeliveriesByAdminId', userAuthMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -44,7 +44,7 @@ router.get('/getDeliveriesByAdminId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const deliveries = await databaseManager.getKnex()('delivery')
+        const deliveries = await (await databaseManager.getKnex())('delivery')
             .leftJoin('users', 'delivery.courier_id', 'users.id')
             .select('delivery.*', 'users.name as courier_name');
 
@@ -54,7 +54,7 @@ router.get('/getDeliveriesByAdminId', userAuthMiddleware, async (req, res) => {
         }
 
         const results = await Promise.all(deliveries.map(async delivery => {
-            const orders = await databaseManager.getKnex()('orders')
+            const orders = await (await databaseManager.getKnex())('orders')
                 .where('orders.delivery_id', delivery.id)
                 .select(
                     'orders.id',
@@ -83,7 +83,7 @@ router.get('/getDeliveriesByCourierId', userAuthMiddleware, async (req, res) => 
         const userId = req.user.id;
 
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
             .first();
@@ -92,7 +92,7 @@ router.get('/getDeliveriesByCourierId', userAuthMiddleware, async (req, res) => 
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const deliveries = await databaseManager.getKnex()('delivery').
+        const deliveries = await (await databaseManager.getKnex())('delivery').
             leftJoin('users', 'delivery.courier_id', 'users.id')
             .where('delivery.courier_id', userId)
             .select('delivery.*', 'users.name as courier_name');
@@ -103,7 +103,7 @@ router.get('/getDeliveriesByCourierId', userAuthMiddleware, async (req, res) => 
         }
 
         const results = await Promise.all(deliveries.map(async delivery => {
-            const orders = await databaseManager.getKnex()('orders')
+            const orders = await (await databaseManager.getKnex())('orders')
                 .where('orders.delivery_id', delivery.id)
                 .select(
                     'orders.id',
@@ -134,7 +134,7 @@ router.delete('/deleteDelivery/:deliveryId', userAuthMiddleware, async (req, res
         const userId = req.user.id;
 
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -143,9 +143,9 @@ router.delete('/deleteDelivery/:deliveryId', userAuthMiddleware, async (req, res
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const delivery = await databaseManager.getKnex()('delivery').where({ id: deliveryId }).first();
+        const delivery = await (await databaseManager.getKnex())('delivery').where({ id: deliveryId }).first();
         if (!delivery) return sendJsonResponse(res, false, 404, "Livrarea nu există!", []);
-        await databaseManager.getKnex()('delivery').where({ id: deliveryId }).del();
+        await (await databaseManager.getKnex())('delivery').where({ id: deliveryId }).del();
 
         return sendJsonResponse(res, true, 200, "Livrarea a fost ștearsă cu succes!", []);
     } catch (error) {
@@ -164,7 +164,7 @@ router.delete('/deleteDelivery/:deliveryId', userAuthMiddleware, async (req, res
 //         const userId = req.user.id;
 
 
-//         const userRights = await databaseManager.getKnex()('user_rights')
+//         const userRights = await (await databaseManager.getKnex())('user_rights')
 //             .join('rights', 'user_rights.right_id', 'rights.id')
 //             .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
 //             .first();
@@ -174,11 +174,11 @@ router.delete('/deleteDelivery/:deliveryId', userAuthMiddleware, async (req, res
 //         }
 
 
-//         const delivery = await databaseManager.getKnex()('delivery').where({ id: deliveryId }).first();
-//         const issue = await databaseManager.getKnex()('issues').where({ id: issueId }).first();
+//         const delivery = await (await databaseManager.getKnex())('delivery').where({ id: deliveryId }).first();
+//         const issue = await (await databaseManager.getKnex())('issues').where({ id: issueId }).first();
 //         if (!delivery || !issue) return sendJsonResponse(res, false, 404, "Livrarea sau problema nu există!", []);
-//         await databaseManager.getKnex()('delivery').where({ id: deliveryId }).update({ issue_id: issueId });
-//         const updated = await databaseManager.getKnex()('delivery').where({ id: deliveryId }).first();
+//         await (await databaseManager.getKnex())('delivery').where({ id: deliveryId }).update({ issue_id: issueId });
+//         const updated = await (await databaseManager.getKnex())('delivery').where({ id: deliveryId }).first();
 //         return sendJsonResponse(res, true, 200, `Problema a fost atribuită livrării ${deliveryId}!`, { delivery: updated });
 //     } catch (error) {
 //         return sendJsonResponse(res, false, 500, "Eroare la adăugarea problemei!", { details: error.message });
@@ -195,7 +195,7 @@ router.post('/addOrdersToDelivery/:deliveryId', userAuthMiddleware, async (req, 
         const deliveryId = req.params.deliveryId;
 
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -208,8 +208,8 @@ router.post('/addOrdersToDelivery/:deliveryId', userAuthMiddleware, async (req, 
         if (!Array.isArray(order_ids) || order_ids.length === 0) {
             return sendJsonResponse(res, false, 400, "Trebuie să selectezi cel puțin o comandă!", []);
         }
-        await databaseManager.getKnex()('orders').whereIn('id', order_ids).update({ delivery_id: deliveryId });
-        const orders = await databaseManager.getKnex()('orders').whereIn('id', order_ids);
+        await (await databaseManager.getKnex())('orders').whereIn('id', order_ids).update({ delivery_id: deliveryId });
+        const orders = await (await databaseManager.getKnex())('orders').whereIn('id', order_ids);
         return sendJsonResponse(res, true, 200, "Comenzile au fost adăugate la livrare!", { orders });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la asocierea comenzilor la livrare!", { details: error.message });
@@ -227,7 +227,7 @@ router.post('/assignCourierToDelivery/:deliveryId', userAuthMiddleware, async (r
         const userId = req.user.id;
 
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -236,11 +236,11 @@ router.post('/assignCourierToDelivery/:deliveryId', userAuthMiddleware, async (r
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const delivery = await databaseManager.getKnex()('delivery').where({ id: deliveryId }).first();
-        const courier = await databaseManager.getKnex()('users').where({ id: courier_id }).first();
+        const delivery = await (await databaseManager.getKnex())('delivery').where({ id: deliveryId }).first();
+        const courier = await (await databaseManager.getKnex())('users').where({ id: courier_id }).first();
         if (!delivery || !courier) return sendJsonResponse(res, false, 404, "Livrarea sau curierul nu există!", []);
-        await databaseManager.getKnex()('delivery').where({ id: deliveryId }).update({ courier_id: courier_id });
-        const updated = await databaseManager.getKnex()('delivery').where({ id: deliveryId }).first();
+        await (await databaseManager.getKnex())('delivery').where({ id: deliveryId }).update({ courier_id: courier_id });
+        const updated = await (await databaseManager.getKnex())('delivery').where({ id: deliveryId }).first();
         return sendJsonResponse(res, true, 200, `Curierul a fost atribuit livrării ${deliveryId}!`, { delivery: updated });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la atribuirea curierului!", { details: error.message });
@@ -257,7 +257,7 @@ router.get('/searchDeliveryByCourierId', userAuthMiddleware, async (req, res) =>
             return sendJsonResponse(res, false, 400, 'Search field is required', null);
         }
 
-        const userRights = await databaseManager.getKnex()('user_rights')
+        const userRights = await (await databaseManager.getKnex())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': req.user.id, 'rights.right_code': 2 })
             .first();
@@ -267,7 +267,7 @@ router.get('/searchDeliveryByCourierId', userAuthMiddleware, async (req, res) =>
         }
 
         // Query the database to search for employees where name contains the searchField
-        const deliveries = await databaseManager.getKnex()('delivery')
+        const deliveries = await (await databaseManager.getKnex())('delivery')
             .join('users', 'delivery.courier_id', 'users.id')
             .where('delivery.courier_id', req.user.id)
             .where(function () {

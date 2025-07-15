@@ -54,9 +54,9 @@ class DatabaseManager {
         }
     }
 
-    getKnex() {
+    async getKnex() {
         if (!this.knex) {
-            throw new Error('Database not connected. Call connect() first.');
+            await this.connect();
         }
         return this.knex;
     }
