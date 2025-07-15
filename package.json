@@ -6,13 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "start:with-migrations": "npm run migrate && npm start",
-    "start:with-setup": "npm run migrate && npm run seed && npm start",
     "dev": "nodemon server.mjs",
     "build": "echo 'Backend build completed - no compilation needed'",
     "migrate": "knex migrate:latest --knexfile knexfile.cjs",
     "seed": "knex seed:run --knexfile knexfile.cjs",
-    "deploy": "npm run migrate && npm start"
+    "deploy": "npm start"
   },
   "repository": {
     "type": "git",

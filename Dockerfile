@@ -14,5 +14,5 @@ RUN npm install --production
 # Expune portul 8080 (App Runner folosește implicit acest port)
 EXPOSE 8080
 
-# Rulează migrațiile, seed-urile și apoi aplicația
-CMD [ "npm", "run", "start:with-setup" ] 
+# Pornește aplicația (migrațiile se vor rula automat)
+CMD [ "npm", "start" ] 

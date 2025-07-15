@@ -3,10 +3,7 @@
 import express from "express"
 import dotenv from 'dotenv'
 import cors from 'cors'
-import { exec } from 'child_process'
-import { promisify } from 'util'
-
-const execAsync = promisify(exec);
+import databaseManager from './src/utils/database.mjs'
 
 const app = express();
 
@@ -31,24 +28,18 @@ app.use(cors({
 const runMigrations = async () => {
     try {
         console.log('🔄 Running database migrations...');
-        const { stdout, stderr } = await execAsync('npm run migrate');
+        await databaseManager.runMigrations();
         console.log('✅ Migrations completed successfully');
-        if (stderr) {
-            console.log('⚠️ Migration warnings:', stderr);
-        }
 
         // Run seeds after migrations
         console.log('🌱 Running database seeds...');
-        const { stdout: seedStdout, stderr: seedStderr } = await execAsync('npm run seed');
+        await databaseManager.runSeeds();
         console.log('✅ Seeds completed successfully');
-        if (seedStderr) {
-            console.log('⚠️ Seed warnings:', seedStderr);
-        }
 
         return true;
     } catch (error) {
         console.error('❌ Migration/Seed failed:', error.message);
-        console.error('🔍 Error details:', error.stderr);
+        console.error('🔍 Error details:', error.stack);
         return false;
     }
 };
