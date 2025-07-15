@@ -5,12 +5,15 @@ frontend:
       commands:
         - echo "Installing dependencies..."
         - npm install
+        - echo "Dependencies installed successfully"
     build:
       commands:
         - echo "Setting up backend application..."
         - echo "No frontend build needed for backend-only app"
         - echo "Skipping database migrations during build (will run on startup)"
         - echo "Backend build completed"
+        - echo "Build phase completed successfully"
+        - echo "Application ready for deployment"
   artifacts:
     baseDirectory: /
     files:

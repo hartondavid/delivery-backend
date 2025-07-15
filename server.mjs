@@ -10,6 +10,7 @@ const startServer = async () => {
         console.log('🚀 Starting Delivery Backend Server...');
         console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
         console.log(`🔧 Port: ${port}`);
+        console.log(`📡 Host: 0.0.0.0`);
 
         // Test database connection
         console.log('🔌 Testing database connection...');
@@ -37,6 +38,15 @@ const startServer = async () => {
             console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
             console.log(`📊 Health check: http://localhost:${port}/health`);
             console.log(`🏠 Root endpoint: http://localhost:${port}/`);
+            console.log(`🔗 API endpoints: http://localhost:${port}/api/`);
+        });
+
+        // Add error handling for the server
+        server.on('error', (error) => {
+            console.error('❌ Server error:', error);
+            if (error.code === 'EADDRINUSE') {
+                console.error('💡 Port is already in use. Try a different port.');
+            }
         });
 
         // Graceful shutdown
@@ -58,6 +68,7 @@ const startServer = async () => {
 
     } catch (error) {
         console.error('❌ Failed to start server:', error);
+        console.error('🔍 Error details:', error.stack);
         process.exit(1);
     }
 };

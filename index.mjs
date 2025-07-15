@@ -38,6 +38,15 @@ app.use(async (req, res, next) => {
     }
 });
 
+// Simple test route
+app.get('/test', (req, res) => {
+    res.json({
+        message: 'Test route working!',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
 // Root route
 app.get('/', (req, res) => {
     res.json({
@@ -46,6 +55,7 @@ app.get('/', (req, res) => {
         status: 'running',
         timestamp: new Date().toISOString(),
         endpoints: {
+            test: '/test',
             health: '/health',
             api: '/api/',
             database: '/health/db',
