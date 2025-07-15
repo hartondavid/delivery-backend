@@ -143,6 +143,77 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Test database endpoint (not protected)
+app.get('/test-db', async (req, res) => {
+    try {
+        console.log('🔍 Testing database connection...');
+
+        // Test database connection
+        const knex = await databaseManager.getKnex();
+        await knex.raw('SELECT 1');
+        console.log('✅ Database connection successful');
+
+        // Get all users
+        const users = await knex('users').select('id', 'name', 'email', 'phone');
+        console.log('📋 Found users:', users.length);
+
+        res.json({
+            success: true,
+            message: "Database test successful",
+            data: {
+                connection: 'successful',
+                usersCount: users.length,
+                users: users
+            }
+        });
+    } catch (error) {
+        console.error("Database test error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Database test failed",
+            data: {
+                error: error.message,
+                stack: error.stack
+            }
+        });
+    }
+});
+
+// Manual seed endpoint (not protected) - for emergency use
+app.post('/run-seeds', async (req, res) => {
+    try {
+        console.log('🌱 Manually running seeds...');
+
+        // Run seeds
+        await databaseManager.runSeeds();
+        console.log('✅ Manual seeds completed successfully');
+
+        // Get all users after seeding
+        const knex = await databaseManager.getKnex();
+        const users = await knex('users').select('id', 'name', 'email', 'phone');
+        console.log('📋 Users after manual seeding:', users);
+
+        res.json({
+            success: true,
+            message: "Manual seeding completed successfully",
+            data: {
+                usersCount: users.length,
+                users: users
+            }
+        });
+    } catch (error) {
+        console.error("Manual seeding error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Manual seeding failed",
+            data: {
+                error: error.message,
+                stack: error.stack
+            }
+        });
+    }
+});
+
 // 404 handler for undefined routes
 app.use('*', (req, res) => {
     console.log('404 route accessed:', req.originalUrl);
@@ -153,6 +224,8 @@ app.use('*', (req, res) => {
             root: '/',
             test: '/test',
             health: '/health',
+            testDb: '/test-db',
+            runSeeds: '/run-seeds',
             api: apiRoutes ? '/api/*' : 'not available (simplified version)'
         }
     });
