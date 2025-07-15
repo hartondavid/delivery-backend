@@ -2,10 +2,7 @@
 
 import express from "express"
 import dotenv from 'dotenv'
-import apiRouter from './src/routes/apiRoute.mjs'
-import healthRouter from './src/endpoints/health.mjs'
 import cors from 'cors'
-import databaseManager from './src/utils/database.mjs'
 
 const app = express();
 
@@ -27,25 +24,13 @@ app.use(express.urlencoded({ extended: true }));
 // Other middlewares
 app.use(express.json());
 
-// Initialize database connection (but don't block requests if it fails)
-app.use(async (req, res, next) => {
-    try {
-        await databaseManager.connect();
-        next();
-    } catch (error) {
-        console.warn('Database connection failed for request:', req.path, error.message);
-        // Continue with the request even if database fails
-        next();
-    }
-});
-
 // Simple test route
 app.get('/test', (req, res) => {
     res.json({
         message: 'Test route working!',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'production',
-        database: 'connected'
+        database: 'not connected'
     });
 });
 
@@ -59,19 +44,20 @@ app.get('/', (req, res) => {
         environment: process.env.NODE_ENV || 'production',
         endpoints: {
             test: '/test',
-            health: '/health',
-            api: '/api/',
-            database: '/health/db',
-            system: '/health/system'
+            health: '/health'
         }
     });
 });
 
-// Health check routes
-app.use('/health', healthRouter);
-
-// API routes
-app.use('/api/', apiRouter);
+// Simple health check route
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'production',
+        database: 'not connected'
+    });
+});
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {
@@ -81,8 +67,7 @@ app.use('*', (req, res) => {
         availableRoutes: {
             root: '/',
             test: '/test',
-            health: '/health',
-            api: '/api/'
+            health: '/health'
         }
     });
 });
