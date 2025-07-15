@@ -5,7 +5,7 @@
   "main": "amplify-app.js",
   "type": "module",
   "scripts": {
-    "start": "PORT=8080 node amplify-app.js",
+    "start": "node amplify-app.js",
     "start:server": "node server.mjs",
     "dev": "nodemon server.mjs",
     "build": "echo 'Backend build completed - no compilation needed'",
