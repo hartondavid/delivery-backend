@@ -3,9 +3,79 @@ import databaseManager from "../utils/database.mjs";
 import bcrypt from "bcrypt";
 import { getAuthToken, md5Hash, sendJsonResponse } from "../utils/utilFunctions.mjs";
 import { userAuthMiddleware } from "../utils/middlewares/userAuthMiddleware.mjs";
+import jwt from "jsonwebtoken";
 
 
 const router = Router();
+
+// Test endpoint to check database and list users (not protected)
+router.get('/test-db', async (req, res) => {
+    try {
+        console.log('🔍 Testing database connection...');
+
+        // Test database connection
+        const knex = await databaseManager.getKnex();
+        await knex.raw('SELECT 1');
+        console.log('✅ Database connection successful');
+
+        // Get all users
+        const users = await knex('users').select('id', 'name', 'email', 'phone');
+        console.log('📋 Found users:', users.length);
+
+        return sendJsonResponse(res, true, 200, "Database test successful", {
+            connection: 'successful',
+            usersCount: users.length,
+            users: users
+        });
+    } catch (error) {
+        console.error("Database test error:", error);
+        return sendJsonResponse(res, false, 500, "Database test failed", {
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
+// Test token endpoint (not protected)
+router.post('/test-token', async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return sendJsonResponse(res, false, 400, "Token is required", []);
+        }
+
+        console.log('🔍 Testing token:', token.substring(0, 20) + '...');
+
+        // Verify token
+        const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+        const decodedToken = jwt.verify(token, JWT_SECRET);
+
+        console.log('✅ Token verified:', decodedToken);
+
+        // Get user from database
+        const user = await (await databaseManager.getKnex())('users').where({ id: decodedToken.id }).first();
+
+        if (!user) {
+            return sendJsonResponse(res, false, 404, "User not found", []);
+        }
+
+        return sendJsonResponse(res, true, 200, "Token is valid", {
+            token: decodedToken,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone
+            }
+        });
+    } catch (error) {
+        console.error("Token test error:", error);
+        return sendJsonResponse(res, false, 400, "Invalid token", {
+            error: error.message
+        });
+    }
+});
 
 // Login
 router.post('/login', async (req, res) => {
