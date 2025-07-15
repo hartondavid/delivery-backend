@@ -3,7 +3,9 @@
 import express from "express"
 import dotenv from 'dotenv'
 import apiRouter from './src/routes/apiRoute.mjs'
+import healthRouter from './src/endpoints/health.mjs'
 import cors from 'cors'
+import databaseManager from './src/utils/database.mjs'
 
 const app = express();
 
@@ -24,6 +26,20 @@ app.use(express.urlencoded({ extended: true }));
 
 // Other middlewares
 app.use(express.json());
+
+// Initialize database connection
+app.use(async (req, res, next) => {
+    try {
+        await databaseManager.connect();
+        next();
+    } catch (error) {
+        console.error('Database connection failed:', error);
+        res.status(503).json({ error: 'Database connection failed' });
+    }
+});
+
+// Health check routes
+app.use('/health', healthRouter);
 
 app.use('/api/', apiRouter)
 

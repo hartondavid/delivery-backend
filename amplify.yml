@@ -1,0 +1,17 @@
+version: 1
+backend:
+  phases:
+    build:
+      commands:
+        - npm install
+        - npm run migrate
+  artifacts:
+    baseDirectory: /
+    files:
+      - '**/*'
+      - '!node_modules/**/*'
+      - '!.git/**/*'
+      - '!amplify.yml'
+  cache:
+    paths:
+      - node_modules/**/* 

@@ -5,7 +5,7 @@ exports.up = function (knex) {
         table.integer('admin_id').unsigned().notNullable()
             .references('id').inTable('users').onDelete('CASCADE');
         table.integer('courier_id').unsigned().nullable()
-            .references('id').inTable('users').onDelete('CASCADE');
+            .references('id').inTable('users').onDelete('SET NULL');
 
 
         table.timestamps(true, true);

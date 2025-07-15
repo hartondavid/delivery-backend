@@ -153,18 +153,6 @@ router.get('/searchCourier', userAuthMiddleware, async (req, res) => {
     }
 })
 
-router.delete('/deleteCourier/:courierId', userAuthMiddleware, async (req, res) => {
-    const { courierId } = req.params;
-    try {
-        const courier = await db('users').where({ id: courierId }).first();
-        if (!courier) return sendJsonResponse(res, false, 404, "Curierul nu există!", []);
-        await db('user_routes').where({ courier_id: courierId }).del();
-        return sendJsonResponse(res, true, 200, "Curierul a fost șters cu succes!", []);
-    } catch (error) {
-        return sendJsonResponse(res, false, 500, "Eroare la ștergerea curierului!", { details: error.message });
-    }
-});
-
 router.post('/addCourierToRoute/:routeId', userAuthMiddleware, async (req, res) => {
     const { courier_id } = req.body;
     const userId = req.user?.id;
@@ -188,7 +176,7 @@ router.post('/addCourierToRoute/:routeId', userAuthMiddleware, async (req, res) 
 });
 
 
-router.post('/addCourier', async (req, res) => {
+router.post('/addCourier', userAuthMiddleware, async (req, res) => {
     try {
         const {
             name,
@@ -277,10 +265,12 @@ router.post('/addCourier', async (req, res) => {
     }
 });
 
-router.delete('/deleteCourier/:userId', userAuthMiddleware, async (req, res) => {
+router.delete('/deleteCourier/:courierId', userAuthMiddleware, async (req, res) => {
     try {
 
-        const { userId } = req.params;
+        const { courierId } = req.params;
+
+        console.log('courierId', courierId);
 
         const loggedUserId = req.user.id;
 
@@ -294,9 +284,12 @@ router.delete('/deleteCourier/:userId', userAuthMiddleware, async (req, res) => 
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const user = await db('users').where({ id: userId }).first();
+        const user = await db('users').where({ id: courierId }).first();
         if (!user) return sendJsonResponse(res, false, 404, "Curierul nu există!", []);
-        await db('users').where({ id: userId }).del();
+
+        console.log('user', user);
+
+        await db('users').where({ id: courierId }).del();
         return sendJsonResponse(res, true, 200, "Curierul a fost șters cu succes!", []);
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la ștergerea ingredientului!", { details: error.message });

@@ -5,7 +5,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.mjs",
-    "dev": "nodemon server.mjs"
+    "dev": "nodemon server.mjs",
+    "build": "echo 'Build completed'",
+    "migrate": "knex migrate:latest",
+    "seed": "knex seed:run",
+    "migrate:make": "knex migrate:make",
+    "seed:make": "knex seed:make"
   },
   "repository": {
     "type": "git",

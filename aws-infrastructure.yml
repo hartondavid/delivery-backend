@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Delivery Backend Infrastructure - RDS Database and Security Groups'
+
+Parameters:
+  DBName:
+    Type: String
+    Default: delivery_db
+    Description: Name of the database to create
+  
+  DBUsername:
+    Type: String
+    Default: admin
+    Description: Master username for the database
+  
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: Master password for the database
+    MinLength: 8
+  
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.micro
+    AllowedValues:
+      - db.t3.micro
+      - db.t3.small
+      - db.t3.medium
+      - db.r5.large
+    Description: Database instance class
+  
+  DBAllocatedStorage:
+    Type: Number
+    Default: 20
+    MinValue: 20
+    MaxValue: 65536
+    Description: Allocated storage in GB
+  
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: Environment name
+  
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where the database will be created
+
+Resources:
+  # Security Group for RDS
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Delivery Backend RDS
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+          Description: MySQL/MariaDB access
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-delivery-rds-sg'
+        - Key: Environment
+          Value: !Ref Environment
+
+  # RDS Subnet Group
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for Delivery Backend RDS
+      SubnetIds:
+        - !Ref 'AWS::NoValue'  # You'll need to specify actual subnet IDs
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-delivery-subnet-group'
+        - Key: Environment
+          Value: !Ref Environment
+
+  # RDS Database Instance
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub '${Environment}-delivery-db'
+      DBInstanceClass: !Ref DBInstanceClass
+      Engine: mariadb
+      EngineVersion: '10.6'
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      AllocatedStorage: !Ref DBAllocatedStorage
+      StorageType: gp2
+      DBName: !Ref DBName
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      BackupRetentionPeriod: 7
+      MultiAZ: false
+      PubliclyAccessible: true
+      DeletionProtection: false
+      StorageEncrypted: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-delivery-database'
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Parameter Group for RDS
+  RDSParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Family: mariadb10.6
+      Description: Parameter group for Delivery Backend
+      Parameters:
+        time_zone: UTC
+        character_set_server: utf8mb4
+        collation_server: utf8mb4_unicode_ci
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-delivery-params'
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  DatabaseEndpoint:
+    Description: Database endpoint
+    Value: !GetAtt RDSInstance.Endpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-DatabaseEndpoint'
+  
+  DatabasePort:
+    Description: Database port
+    Value: !GetAtt RDSInstance.Endpoint.Port
+    Export:
+      Name: !Sub '${AWS::StackName}-DatabasePort'
+  
+  DatabaseName:
+    Description: Database name
+    Value: !Ref DBName
+    Export:
+      Name: !Sub '${AWS::StackName}-DatabaseName'
+  
+  SecurityGroupId:
+    Description: Security Group ID for RDS
+    Value: !Ref RDSSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-SecurityGroupId'
+  
+  DatabaseConnectionString:
+    Description: Database connection string (without password)
+    Value: !Sub 'mysql://${DBUsername}@${RDSInstance.Endpoint.Address}:${RDSInstance.Endpoint.Port}/${DBName}'
+    Export:
+      Name: !Sub '${AWS::StackName}-ConnectionString' 
