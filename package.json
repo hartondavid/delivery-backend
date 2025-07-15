@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
+    "start:with-migrations": "npm run migrate && npm start",
     "dev": "nodemon server.mjs",
     "build": "echo 'Backend build completed - no compilation needed'",
     "migrate": "knex migrate:latest --knexfile knexfile.cjs",
