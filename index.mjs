@@ -38,6 +38,22 @@ app.use(async (req, res, next) => {
     }
 });
 
+// Root route
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Delivery Backend API',
+        version: '1.0.0',
+        status: 'running',
+        timestamp: new Date().toISOString(),
+        endpoints: {
+            health: '/health',
+            api: '/api/',
+            database: '/health/db',
+            system: '/health/system'
+        }
+    });
+});
+
 // Health check routes
 app.use('/health', healthRouter);
 

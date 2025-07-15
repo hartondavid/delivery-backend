@@ -8,8 +8,11 @@ const port = process.env.PORT || 3001;
 const startServer = async () => {
     try {
         console.log('🚀 Starting Delivery Backend Server...');
+        console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`🔧 Port: ${port}`);
 
         // Test database connection
+        console.log('🔌 Testing database connection...');
         const dbConnected = await databaseManager.connect();
         if (!dbConnected) {
             console.error('❌ Failed to connect to database. Exiting...');
@@ -33,6 +36,7 @@ const startServer = async () => {
             console.log(`✅ Server is running on http://localhost:${port}`);
             console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
             console.log(`📊 Health check: http://localhost:${port}/health`);
+            console.log(`🏠 Root endpoint: http://localhost:${port}/`);
         });
 
         // Graceful shutdown
