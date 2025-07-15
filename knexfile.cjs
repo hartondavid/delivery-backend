@@ -12,12 +12,9 @@ module.exports = {
         timezone: 'Z',  // Ensures all dates are treated as UTC
         decimalNumbers: true,
         // SSL configuration for Aurora/RDS
-        ssl: process.env.NODE_ENV === 'production' ? {
+        ssl: process.env.DB_SSL === 'true' ? {
             rejectUnauthorized: false
         } : false,
-        // Aurora/RDS optimized settings
-        acquireConnectionTimeout: 60000,
-        timeout: 60000,
         // Enhanced connection pooling for Aurora/RDS
         pool: {
             min: 2,

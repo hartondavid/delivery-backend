@@ -1,5 +1,7 @@
 import knex from 'knex';
-import knexConfig from '../../knexfile.cjs';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const knexConfig = require('../../knexfile.cjs');
 
 class DatabaseManager {
     constructor() {
