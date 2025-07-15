@@ -12,23 +12,28 @@ const startServer = async () => {
         console.log(`🔧 Port: ${port}`);
         console.log(`📡 Host: 0.0.0.0`);
 
-        // Test database connection
+        // Test database connection (but don't exit if it fails)
         console.log('🔌 Testing database connection...');
-        const dbConnected = await databaseManager.connect();
-        if (!dbConnected) {
-            console.error('❌ Failed to connect to database. Exiting...');
-            process.exit(1);
-        }
+        try {
+            const dbConnected = await databaseManager.connect();
+            if (dbConnected) {
+                console.log('✅ Database connected successfully');
 
-        // Run migrations on startup (only in production)
-        if (process.env.NODE_ENV === 'production') {
-            try {
-                console.log('🔄 Running database migrations...');
-                await databaseManager.runMigrations();
-                console.log('✅ Migrations completed successfully');
-            } catch (migrationError) {
-                console.warn('⚠️ Migration failed, but continuing startup:', migrationError.message);
+                // Run migrations on startup (only in production)
+                if (process.env.NODE_ENV === 'production') {
+                    try {
+                        console.log('🔄 Running database migrations...');
+                        await databaseManager.runMigrations();
+                        console.log('✅ Migrations completed successfully');
+                    } catch (migrationError) {
+                        console.warn('⚠️ Migration failed, but continuing startup:', migrationError.message);
+                    }
+                }
+            } else {
+                console.warn('⚠️ Database connection failed, but continuing startup');
             }
+        } catch (dbError) {
+            console.warn('⚠️ Database connection error, but continuing startup:', dbError.message);
         }
 
         // Start the server
@@ -52,7 +57,11 @@ const startServer = async () => {
         process.on('SIGTERM', async () => {
             console.log('\n🔄 SIGTERM received, shutting down gracefully...');
             server.close(async () => {
-                await databaseManager.disconnect();
+                try {
+                    await databaseManager.disconnect();
+                } catch (error) {
+                    console.log('Database disconnect error:', error.message);
+                }
                 process.exit(0);
             });
         });
@@ -60,7 +69,11 @@ const startServer = async () => {
         process.on('SIGINT', async () => {
             console.log('\n🔄 SIGINT received, shutting down gracefully...');
             server.close(async () => {
-                await databaseManager.disconnect();
+                try {
+                    await databaseManager.disconnect();
+                } catch (error) {
+                    console.log('Database disconnect error:', error.message);
+                }
                 process.exit(0);
             });
         });

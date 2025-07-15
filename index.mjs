@@ -27,14 +27,15 @@ app.use(express.urlencoded({ extended: true }));
 // Other middlewares
 app.use(express.json());
 
-// Initialize database connection
+// Initialize database connection (but don't block requests if it fails)
 app.use(async (req, res, next) => {
     try {
         await databaseManager.connect();
         next();
     } catch (error) {
-        console.error('Database connection failed:', error);
-        res.status(503).json({ error: 'Database connection failed' });
+        console.warn('Database connection failed for request:', req.path, error.message);
+        // Continue with the request even if database fails
+        next();
     }
 });
 
