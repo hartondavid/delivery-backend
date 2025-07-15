@@ -1,5 +1,5 @@
 import { Router } from "express";
-import db from "../utils/database.mjs";
+import databaseManager from "../utils/database.mjs";
 import { sendJsonResponse } from "../utils/utilFunctions.mjs";
 import { userAuthMiddleware } from "../utils/middlewares/userAuthMiddleware.mjs";
 
@@ -14,7 +14,7 @@ router.post('/addIssue/:deliveryId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await db('user_rights')
+        const userRights = await databaseManager.getKnex()('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
             .where('user_rights.user_id', userId)
@@ -24,7 +24,7 @@ router.post('/addIssue/:deliveryId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const [id] = await db('issues').insert({ description, delivery_id: deliveryId });
+        const [id] = await databaseManager.getKnex()('issues').insert({ description, delivery_id: deliveryId });
 
         return sendJsonResponse(res, true, 201, "Problema a fost adăugată cu succes!", { id });
     } catch (error) {
@@ -42,7 +42,7 @@ router.put('/updateIssue/:issueId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await db('user_rights')
+        const userRights = await databaseManager.getKnex()('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
             .where('user_rights.user_id', userId)
@@ -52,13 +52,13 @@ router.put('/updateIssue/:issueId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const issue = await db('issues').where({ id: issueId }).first();
+        const issue = await databaseManager.getKnex()('issues').where({ id: issueId }).first();
         if (!issue) return sendJsonResponse(res, false, 404, "Problema nu există!", []);
-        await db('issues').where({ id: issueId }).update({
+        await databaseManager.getKnex()('issues').where({ id: issueId }).update({
             description: description || issue.description,
             delivery_id: delivery_id || issue.delivery_id
         });
-        const updated = await db('issues').where({ id: issueId }).first();
+        const updated = await databaseManager.getKnex()('issues').where({ id: issueId }).first();
         return sendJsonResponse(res, true, 200, "Problema a fost actualizată cu succes!", { issue: updated });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la actualizarea problemei!", { details: error.message });
@@ -73,7 +73,7 @@ router.delete('/deleteIssue/:issueId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await db('user_rights')
+        const userRights = await databaseManager.getKnex()('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
             .where('user_rights.user_id', userId)
@@ -84,9 +84,9 @@ router.delete('/deleteIssue/:issueId', userAuthMiddleware, async (req, res) => {
         }
 
 
-        const issue = await db('issues').where({ id: issueId }).first();
+        const issue = await databaseManager.getKnex()('issues').where({ id: issueId }).first();
         if (!issue) return sendJsonResponse(res, false, 404, "Problema nu există!", []);
-        await db('issues').where({ id: issueId }).del();
+        await databaseManager.getKnex()('issues').where({ id: issueId }).del();
         return sendJsonResponse(res, true, 200, "Problema a fost ștearsă cu succes!", []);
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la ștergerea problemei!", { details: error.message });
@@ -99,7 +99,7 @@ router.get('/getIssuesByAdminId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await db('user_rights')
+        const userRights = await databaseManager.getKnex()('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 1)
             .where('user_rights.user_id', userId)
@@ -109,7 +109,7 @@ router.get('/getIssuesByAdminId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const issues = await db('issues')
+        const issues = await databaseManager.getKnex()('issues')
             .join('delivery', 'issues.delivery_id', 'delivery.id')
             .join('users', 'delivery.courier_id', 'users.id')
             .select('issues.*', 'users.name as courier_name', 'users.phone as courier_phone');
@@ -127,7 +127,7 @@ router.get('/getIssue/:issueId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await db('user_rights')
+        const userRights = await databaseManager.getKnex()('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
             .where('user_rights.user_id', userId)
@@ -138,7 +138,7 @@ router.get('/getIssue/:issueId', userAuthMiddleware, async (req, res) => {
         }
 
 
-        const issue = await db('issues')
+        const issue = await databaseManager.getKnex()('issues')
             .where('issues.id', issueId)
             .select(
                 'issues.id',
@@ -162,7 +162,7 @@ router.get('/getIssuesByCourierId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await db('user_rights')
+        const userRights = await databaseManager.getKnex()('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
             .where('user_rights.user_id', userId)
@@ -172,7 +172,7 @@ router.get('/getIssuesByCourierId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const issues = await db('issues')
+        const issues = await databaseManager.getKnex()('issues')
             .join('delivery', 'issues.delivery_id', 'delivery.id')
             .join('users', 'delivery.courier_id', 'users.id')
             .where('delivery.courier_id', req.user.id)

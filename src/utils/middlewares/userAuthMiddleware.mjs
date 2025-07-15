@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import db from '../database.mjs'; // Adjust the path as necessary
+import databaseManager from '../database.mjs'; // Adjust the path as necessary
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
@@ -17,7 +17,7 @@ export const userAuthMiddleware = async (req, res, next) => {
         const userId = decodedToken.id;
 
         // Fetch the user from the database based on the ID from the token
-        const user = await db('users').where({ id: userId }).first();
+        const user = await databaseManager.getKnex()('users').where({ id: userId }).first();
 
 
 
