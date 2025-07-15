@@ -6,31 +6,18 @@ frontend:
         - echo "Installing dependencies..."
         - npm install
         - echo "Dependencies installed successfully"
-        - echo "Checking environment variables..."
-        - echo "NODE_ENV: $NODE_ENV"
-        - echo "DB_HOST: $DB_HOST"
-        - echo "DB_NAME: $DB_NAME"
-        - echo "DB_USER: $DB_USER"
-        - echo "DB_PORT: $DB_PORT"
     build:
       commands:
         - echo "Setting up backend application with Amplify..."
         - echo "Using amplify-app.js as main entry point"
-        - echo "Creating startup configuration..."
+        - echo "Creating simple HTML for Amplify..."
+        - mkdir -p public
+        - echo "<html><body><h1>Backend API</h1><p>API is running at /api</p><p>Health check at /health</p></body></html>" > public/index.html
+        - echo "Starting backend application..."
+        - npm start &
         - echo "Backend build completed"
         - echo "Build phase completed successfully"
         - echo "Application ready for deployment"
-        - echo "Starting application..."
-        - echo "Current directory: $(pwd)"
-        - echo "Files in directory: $(ls -la)"
-        - echo "Starting npm start..."
-        - npm start &
-        - echo "Application started in background"
-        - echo "Sleeping for 10 seconds to let app start..."
-        - sleep 10
-        - echo "Checking if app is running..."
-        - ps aux | grep node || echo "No node processes found"
-        - echo "Build and startup completed"
   artifacts:
     baseDirectory: /
     files:
