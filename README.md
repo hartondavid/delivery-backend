@@ -1,48 +1,41 @@
 # Delivery Backend
 
-A Node.js Express API backend for delivery management with MariaDB database, designed for deployment on AWS Amplify with RDS.
+A Node.js Express API backend for delivery management with MariaDB database, designed for deployment on AWS App Runner with RDS.
 
 ## 🚀 Quick Deploy to AWS
 
-### Prerequisites
+1. Build your Docker image and push to ECR (or connect your repo to App Runner)
+2. Create an AWS RDS MariaDB instance and database
+3. Configure environment variables in App Runner (DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT, DB_SSL, JWT_SECRET, NODE_ENV)
+4. Deploy the backend using AWS App Runner
+5. Run migrations (automatically on start or manually)
 
-1. **AWS Account** - Sign up at [AWS Console](https://aws.amazon.com/)
-2. **AWS CLI** - Install from [AWS CLI](https://aws.amazon.com/cli/)
-3. **Node.js** - Version 16 or higher
+## Environment Variables
 
-### Windows Deployment (Recommended)
+- DB_HOST: RDS endpoint
+- DB_NAME: Database name
+- DB_USER: Database user
+- DB_PASSWORD: Database password
+- DB_PORT: 3306
+- DB_SSL: true
+- JWT_SECRET: your secret
+- NODE_ENV: production
 
-```powershell
-# Run the automated deployment script
-.\deploy.ps1
-```
+## Useful Commands
 
-### Manual Deployment
+- npm run migrate   # Run database migrations
+- npm start         # Start the server
 
-1. **Install Amplify CLI**
-   ```bash
-   npm install -g @aws-amplify/cli
-   amplify configure
-   ```
+## AWS App Runner
 
-2. **Set up AWS RDS MariaDB**
-   - Go to AWS RDS Console
-   - Create a new MariaDB instance
-   - Note down the endpoint, username, and password
+- Make sure your service listens on port 8080 (or the port you configure in App Runner)
+- Set environment variables in the App Runner console
+- Check logs in App Runner for troubleshooting
 
-3. **Configure Environment Variables**
-   ```bash
-   # Create .env file
-   cp .env.example .env
-   # Edit .env with your RDS credentials
-   ```
+## AWS RDS
 
-4. **Deploy with Amplify**
-   ```bash
-   amplify init
-   amplify add api
-   amplify push
-   ```
+- Create the database manually if it does not exist
+- Make sure security groups allow access from App Runner
 
 ## 📋 Environment Variables
 
