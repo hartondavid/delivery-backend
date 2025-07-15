@@ -10,11 +10,13 @@ frontend:
       commands:
         - echo "Setting up backend application with Amplify..."
         - echo "Using amplify-app.js as main entry point"
-        - echo "Creating simple HTML for Amplify..."
-        - echo "<html><body><h1>Backend API</h1><p>API is running at /api</p></body></html>" > public/index.html
+        - echo "Creating startup configuration..."
         - echo "Backend build completed"
         - echo "Build phase completed successfully"
         - echo "Application ready for deployment"
+        - echo "Starting application..."
+        - npm start &
+        - echo "Application started in background"
   artifacts:
     baseDirectory: /
     files:
