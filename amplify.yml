@@ -8,7 +8,8 @@ frontend:
         - echo "Dependencies installed successfully"
     build:
       commands:
-        - echo "Setting up backend application..."
+        - echo "Setting up backend application with Amplify..."
+        - echo "Using amplify-app.js as main entry point"
         - echo "No frontend build needed for backend-only app"
         - echo "Skipping database migrations during build (will run on startup)"
         - echo "Backend build completed"
@@ -21,6 +22,7 @@ frontend:
       - '!node_modules/**/*'
       - '!.git/**/*'
       - '!amplify.yml'
+      - '!test-*.js'
   cache:
     paths:
       - node_modules/**/* 

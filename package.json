@@ -2,9 +2,11 @@
   "name": "delivery-backend",
   "version": "1.0.0",
   "description": "To make it easy for you to get started with GitLab, here's a list of recommended next steps.",
-  "main": "index.js",
+  "main": "amplify-app.js",
+  "type": "module",
   "scripts": {
-    "start": "node server.mjs",
+    "start": "node amplify-app.js",
+    "start:server": "node server.mjs",
     "dev": "nodemon server.mjs",
     "build": "echo 'Backend build completed - no compilation needed'",
     "migrate": "knex migrate:latest --knexfile knexfile.cjs",
