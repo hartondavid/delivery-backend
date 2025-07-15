@@ -9,5 +9,14 @@ node_modules/
 .env
 .test.env
 
+# Database test files
+test-db.js
+test-mysql.js
+test-db-cloudshell.js
+
+# Temporary files
+*.tmp
+*.log
+
 
 
