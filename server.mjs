@@ -3,21 +3,23 @@ import app from './index.mjs';
 
 const port = process.env.PORT || 8080;
 
-// Simplified server startup without database dependency
+// Simplified server startup with debugging
 const startServer = async () => {
     try {
         console.log('🚀 Starting Delivery Backend Server...');
         console.log(`🌍 Environment: ${process.env.NODE_ENV || 'production'}`);
         console.log(`🔧 Port: ${port}`);
         console.log(`📡 Host: 0.0.0.0`);
+        console.log('📦 App imported successfully');
 
-        // Start the server immediately without database
+        // Start the server immediately
         const server = app.listen(port, '0.0.0.0', () => {
             console.log(`✅ Server is running on http://localhost:${port}`);
             console.log(`🌍 Environment: ${process.env.NODE_ENV || 'production'}`);
             console.log(`📊 Health check: http://localhost:${port}/health`);
             console.log(`🏠 Root endpoint: http://localhost:${port}/`);
-            console.log(`🔗 API endpoints: http://localhost:${port}/api/`);
+            console.log(`🔗 Test endpoint: http://localhost:${port}/test`);
+            console.log('🎉 Server started successfully!');
         });
 
         // Add error handling for the server
@@ -32,6 +34,7 @@ const startServer = async () => {
         process.on('SIGTERM', async () => {
             console.log('\n🔄 SIGTERM received, shutting down gracefully...');
             server.close(() => {
+                console.log('✅ Server closed');
                 process.exit(0);
             });
         });
@@ -39,6 +42,7 @@ const startServer = async () => {
         process.on('SIGINT', async () => {
             console.log('\n🔄 SIGINT received, shutting down gracefully...');
             server.close(() => {
+                console.log('✅ Server closed');
                 process.exit(0);
             });
         });
@@ -50,4 +54,5 @@ const startServer = async () => {
     }
 };
 
+console.log('📦 Starting server initialization...');
 startServer();

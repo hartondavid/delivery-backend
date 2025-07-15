@@ -1,41 +1,28 @@
-// app.js
+// app.js - Simplified version for debugging
 
 import express from "express"
 import dotenv from 'dotenv'
-import cors from 'cors'
 
 const app = express();
 
 dotenv.config()
 
-app.set('trust proxy', true);
-
-app.use(cors({
-    origin: '*', // Allow any origin
-    exposedHeaders: ['X-Auth-Token', 'X-Message', 'Content-Disposition'], // Expose the custom header
-
-}));
-// Serve static files from the 'public' directory
-app.use(express.static('public'));
-
-// Middleware to parse x-www-form-urlencoded data
-app.use(express.urlencoded({ extended: true }));
-
-// Other middlewares
+// Basic middleware
 app.use(express.json());
 
 // Simple test route
 app.get('/test', (req, res) => {
+    console.log('Test route accessed');
     res.json({
         message: 'Test route working!',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'production',
-        database: 'not connected'
+        environment: process.env.NODE_ENV || 'production'
     });
 });
 
 // Root route
 app.get('/', (req, res) => {
+    console.log('Root route accessed');
     res.json({
         message: 'Delivery Backend API',
         version: '1.0.0',
@@ -51,16 +38,17 @@ app.get('/', (req, res) => {
 
 // Simple health check route
 app.get('/health', (req, res) => {
+    console.log('Health route accessed');
     res.json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'production',
-        database: 'not connected'
+        environment: process.env.NODE_ENV || 'production'
     });
 });
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {
+    console.log('404 route accessed:', req.originalUrl);
     res.status(404).json({
         error: 'Route not found',
         message: `Cannot ${req.method} ${req.originalUrl}`,
