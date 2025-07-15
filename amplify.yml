@@ -15,7 +15,7 @@ frontend:
         - echo "Backend build completed"
         - echo "Build phase completed successfully"
         - echo "Application ready for deployment"
-        - echo "Starting application with: npm start"
+        - echo "Starting application with npm start"
   artifacts:
     baseDirectory: /
     files:
