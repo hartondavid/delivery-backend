@@ -21,7 +21,8 @@ app.use(express.json());
 app.use(cors({
     origin: '*', // In production, specify your frontend domain
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['X-Auth-Token']
 }));
 
 // Run migrations before starting the server
