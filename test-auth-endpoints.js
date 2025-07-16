@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
+
 // Use built-in fetch (Node.js 18+) or https module
 import https from 'https';
 import http from 'http';
@@ -56,7 +61,7 @@ const simpleFetch = async (url, options = {}) => {
 
 // Configuration
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3001';
-const TEST_EMAIL = 'admin@example.com';
+const TEST_EMAIL = 'david@gmail.com';
 const TEST_PASSWORD = 'password123';
 
 // Test authentication flow
@@ -162,7 +167,7 @@ const testAlternativeEndpoints = async () => {
     try {
         // Test direct API endpoint
         console.log('Testing direct API endpoint...');
-        const response = await simpleFetch(`${BASE_URL}/api/users/checkLogin`, {
+        const response = await fetch(`${BASE_URL}/api/users/checkLogin`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

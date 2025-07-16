@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
+import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+
+// Load environment variables from .env file
+dotenv.config();
 
 // Test JWT token generation and validation
 const testJWT = () => {
