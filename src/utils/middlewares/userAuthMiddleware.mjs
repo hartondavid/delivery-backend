@@ -2,10 +2,16 @@ import jwt from 'jsonwebtoken';
 import databaseManager from '../database.mjs'; // Adjust the path as necessary
 
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export const userAuthMiddleware = async (req, res, next) => {
     console.log('🔐 Auth middleware called for:', req.originalUrl);
+
+    // Check if JWT_SECRET is properly configured
+    if (!JWT_SECRET || JWT_SECRET === 'your_jwt_secret') {
+        console.error('❌ JWT_SECRET not properly configured! Please set JWT_SECRET environment variable.');
+        return res.status(500).json({ error: 'Server configuration error - JWT_SECRET not set' });
+    }
 
     const authHeader = req.headers['authorization'];
     console.log('📋 Auth header:', authHeader ? authHeader.substring(0, 20) + '...' : 'missing');
@@ -43,6 +49,14 @@ export const userAuthMiddleware = async (req, res, next) => {
     } catch (err) {
         console.error('❌ Token verification failed:', err.message);
         console.error('🔍 Error details:', err.stack);
-        return res.status(422).json({ error: 'Invalid token' });
+
+        // Provide more specific error messages
+        if (err.name === 'JsonWebTokenError') {
+            return res.status(422).json({ error: 'Invalid token format' });
+        } else if (err.name === 'TokenExpiredError') {
+            return res.status(422).json({ error: 'Token expired' });
+        } else {
+            return res.status(422).json({ error: 'Invalid token' });
+        }
     }
 };

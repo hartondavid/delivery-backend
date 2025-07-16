@@ -230,7 +230,17 @@ app.post('/test-token', async (req, res) => {
         console.log('🔍 Testing token:', token.substring(0, 20) + '...');
 
         // Verify token
-        const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+        const JWT_SECRET = process.env.JWT_SECRET;
+
+        if (!JWT_SECRET || JWT_SECRET === 'your_jwt_secret') {
+            console.error('❌ JWT_SECRET not properly configured! Please set JWT_SECRET environment variable.');
+            return res.status(500).json({
+                success: false,
+                message: "Server configuration error - JWT_SECRET not set",
+                data: []
+            });
+        }
+
         const jwt = await import('jsonwebtoken');
         const decodedToken = jwt.default.verify(token, JWT_SECRET);
 
@@ -320,10 +330,20 @@ app.post('/login', async (req, res) => {
         console.log('✅ Password verified successfully');
 
         // Generate JWT token
-        const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+        const JWT_SECRET = process.env.JWT_SECRET;
+
+        if (!JWT_SECRET || JWT_SECRET === 'your_jwt_secret') {
+            console.error('❌ JWT_SECRET not properly configured! Please set JWT_SECRET environment variable.');
+            return res.status(500).json({
+                success: false,
+                message: "Server configuration error - JWT_SECRET not set",
+                data: []
+            });
+        }
+
         const jwt = await import('jsonwebtoken');
         const token = jwt.default.sign(
-            { id: user.id, email: user.email, guest: false, employee: true },
+            { id: user.id, phone: user.phone, guest: false, employee: true },
             JWT_SECRET,
             { expiresIn: '1d' }
         );

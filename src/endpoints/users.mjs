@@ -48,7 +48,13 @@ router.post('/test-token', async (req, res) => {
         console.log('🔍 Testing token:', token.substring(0, 20) + '...');
 
         // Verify token
-        const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+        const JWT_SECRET = process.env.JWT_SECRET;
+
+        if (!JWT_SECRET || JWT_SECRET === 'your_jwt_secret') {
+            console.error('❌ JWT_SECRET not properly configured! Please set JWT_SECRET environment variable.');
+            return sendJsonResponse(res, false, 500, "Server configuration error - JWT_SECRET not set", []);
+        }
+
         const decodedToken = jwt.verify(token, JWT_SECRET);
 
         console.log('✅ Token verified:', decodedToken);
@@ -101,7 +107,7 @@ router.post('/login', async (req, res) => {
         }
 
         // Generate JWT token
-        const token = getAuthToken(user.id, user.email, false, '1d', true)
+        const token = getAuthToken(user.id, user.phone, false, '1d', true)
 
         await (await databaseManager.getKnex())('users')
             .where({ id: user.id })
