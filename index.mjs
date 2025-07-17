@@ -76,6 +76,54 @@ const runMigrations = async () => {
     }
 };
 
+// Standalone function to run seed files
+const runSeedFiles = async () => {
+    try {
+        console.log('🌱 Starting seed files execution...');
+
+        // Get database connection
+        const knex = await databaseManager.getKnex();
+
+        // Run all seed files
+        console.log('📦 Running seed files...');
+        await knex.seed.run();
+
+        console.log('✅ Seed files completed successfully');
+
+        // Show what was seeded
+        try {
+            const users = await knex('users').select('id', 'name', 'email');
+            const rights = await knex('rights').select('id', 'name', 'right_code');
+            const userRights = await knex('user_rights').select('*');
+
+            console.log('📊 Seeded data summary:');
+            console.log(`   👥 Users: ${users.length} records`);
+            console.log(`   🔐 Rights: ${rights.length} records`);
+            console.log(`   🔗 User Rights: ${userRights.length} records`);
+
+            return {
+                success: true,
+                message: 'Seed files executed successfully',
+                data: {
+                    users: users.length,
+                    rights: rights.length,
+                    userRights: userRights.length
+                }
+            };
+        } catch (summaryError) {
+            console.log('⚠️ Could not generate summary:', summaryError.message);
+            return {
+                success: true,
+                message: 'Seed files executed successfully'
+            };
+        }
+    } catch (error) {
+        console.error('❌ Seed files execution failed:', error.message);
+        console.error('🔍 Error details:', error.stack);
+        throw error;
+    }
+};
+
 // Import API routes (with error handling)
 let apiRoutes = null;
 try {
