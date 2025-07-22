@@ -24,7 +24,9 @@ router.post('/addRoute', userAuthMiddleware, async (req, res) => {
 
         const idResult = await (await db())('routes').insert({ area, admin_id: userId }).returning('id');
         const id = Array.isArray(idResult) ? idResult[0] : idResult;
-        const route = await (await db())('routes').where({ id }).first();
+        // Extract the actual ID value from the object
+        const routeId = typeof id === 'object' && id.id ? id.id : id;
+        const route = await (await db())('routes').where({ id: routeId }).first();
         return sendJsonResponse(res, true, 201, "Rută adăugată cu succes!", { route });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la adăugarea rutei!", { details: error.message });

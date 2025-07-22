@@ -326,7 +326,9 @@ router.post('/addCourier', userAuthMiddleware, async (req, res) => {
             const userIdResult = await (await db())('users')
                 .insert(userData)
                 .returning('id');
-            newUserId = Array.isArray(userIdResult) ? userIdResult[0] : userIdResult;
+            const userId = Array.isArray(userIdResult) ? userIdResult[0] : userIdResult;
+            // Extract the actual ID value from the object
+            newUserId = typeof userId === 'object' && userId.id ? userId.id : userId;
 
             const rightCode = await (await db())('rights').where('right_code', 2).first();
 

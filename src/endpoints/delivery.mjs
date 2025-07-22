@@ -23,8 +23,10 @@ router.post('/addDelivery', userAuthMiddleware, async (req, res) => {
 
         const idResult = await (await db())('delivery').insert({ admin_id: userId }).returning('id');
         const id = Array.isArray(idResult) ? idResult[0] : idResult;
+        // Extract the actual ID value from the object
+        const deliveryId = typeof id === 'object' && id.id ? id.id : id;
 
-        const delivery = await (await db())('delivery').where({ id }).first();
+        const delivery = await (await db())('delivery').where({ id: deliveryId }).first();
         return sendJsonResponse(res, true, 201, "Livrarea a fost adăugată cu succes!", delivery);
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la adăugarea livrării!", { details: error.message });
