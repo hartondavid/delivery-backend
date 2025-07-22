@@ -35,35 +35,44 @@ try {
 // Basic middleware
 app.use(express.json());
 
-// Add CORS for frontend access - Using cors package for better reliability
-const corsOptions = {
-    origin: function (origin, callback) {
-        console.log('🔍 CORS Origin check:', origin);
+// Add CORS for frontend access - Direct configuration (Updated for Vercel deployment)
+app.use((req, res, next) => {
+    console.log(`🌐 ${req.method} ${req.url} - Origin: ${req.headers.origin || 'none'}`);
 
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) {
-            console.log('✅ CORS: Allowing request with no origin');
-            return callback(null, true);
-        }
+    // Set CORS headers for all requests - allow frontend domain and subdomains
+    const origin = req.headers.origin;
+    console.log('🔍 CORS Debug - Origin:', origin);
+    console.log('🔍 CORS Debug - Starts with delivery.davidharton.online:', origin?.startsWith('https://delivery.davidharton.online'));
+    console.log('🔍 CORS Debug - Starts with localhost:', origin?.startsWith('http://localhost:'));
 
-        // Allow specific domains
-        if (origin.startsWith('https://delivery.davidharton.online') ||
-            origin.startsWith('http://localhost:')) {
-            console.log('✅ CORS: Allowing origin:', origin);
-            return callback(null, true);
-        }
+    if (origin && (
+        origin.startsWith('https://delivery.davidharton.online') ||
+        origin.startsWith('http://localhost:')
+    )) {
+        console.log('✅ CORS Debug - Setting origin to:', origin);
+        res.header('Access-Control-Allow-Origin', origin);
+    } else {
+        console.log('⚠️ CORS Debug - Using default origin');
+        res.header('Access-Control-Allow-Origin', 'https://delivery.davidharton.online');
+    }
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.header('Access-Control-Expose-Headers', 'X-Auth-Token, X-Total-Count');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400');
 
-        console.log('❌ CORS: Blocking origin:', origin);
-        return callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-    exposedHeaders: ['X-Auth-Token', 'X-Total-Count'],
-    maxAge: 86400
-};
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        console.log('🔄 OPTIONS preflight request handled');
+        res.sendStatus(200);
+        return;
+    }
 
-app.use(cors(corsOptions));
+    next();
+});
+
+// CORS is already handled by the custom middleware above
+// app.use(cors(corsOptions)); // Commented out to avoid conflicts
 
 // Run migrations before starting the server
 const runMigrations = async () => {
