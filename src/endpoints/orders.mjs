@@ -13,7 +13,7 @@ router.post('/addOrder', userAuthMiddleware, async (req, res) => {
         const { recipient, phone, address, status } = req.body;
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -39,7 +39,7 @@ router.put('/updateOrder/:orderId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -71,7 +71,7 @@ router.delete('/deleteOrder/:orderId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -98,7 +98,7 @@ router.get('/getOrder/:orderId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -131,7 +131,7 @@ router.get('/getOrdersByAdminId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -168,7 +168,7 @@ router.get('/getOrdersByCourierId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
             .first();
@@ -211,7 +211,7 @@ router.get('/searchOrder', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -251,7 +251,7 @@ router.get('/getOrdersByDeliveryId/:deliveryId', userAuthMiddleware, async (req,
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();

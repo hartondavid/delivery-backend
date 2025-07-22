@@ -13,7 +13,7 @@ router.post('/addRoute', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -39,7 +39,7 @@ router.put('/updateRoute/:routeId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -66,7 +66,7 @@ router.delete('/deleteRoute/:routeId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -93,7 +93,7 @@ router.get('/getCouriers/:routeId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -118,7 +118,7 @@ router.get('/getCouriersByAdminId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -165,7 +165,7 @@ router.get('/getRoutesByCourierId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
             .first();
@@ -197,7 +197,7 @@ router.post('/addCourierToRoute/:routeId', userAuthMiddleware, async (req, res) 
         const userId = req.user.id;
         const routeId = req.params.routeId;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -222,7 +222,7 @@ router.get('/getCouriersByRouteId/:routeId', userAuthMiddleware, async (req, res
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -231,7 +231,7 @@ router.get('/getCouriersByRouteId/:routeId', userAuthMiddleware, async (req, res
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const couriers = await (await databaseManager.getKnex())('user_routes')
+        const couriers = await (await db())('user_routes')
             .join('users', 'user_routes.courier_id', 'users.id')
             .join('routes', 'user_routes.route_id', 'routes.id')
             .where({ 'user_routes.route_id': routeId })

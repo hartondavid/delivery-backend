@@ -14,7 +14,7 @@ router.post('/addIssue/:deliveryId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
             .first();
@@ -41,7 +41,7 @@ router.put('/updateIssue/:issueId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
             .first();
@@ -71,7 +71,7 @@ router.delete('/deleteIssue/:issueId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
             .first();
@@ -96,7 +96,7 @@ router.get('/getIssuesByAdminId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 1 })
             .first();
@@ -105,7 +105,7 @@ router.get('/getIssuesByAdminId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const issues = await (await databaseManager.getKnex())('issues')
+        const issues = await (await db())('issues')
             .join('delivery', 'issues.delivery_id', 'delivery.id')
             .join('users', 'delivery.courier_id', 'users.id')
             .select('issues.*', 'delivery.id as delivery_id', 'users.name as courier_name');
@@ -123,7 +123,7 @@ router.get('/getIssue/:issueId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
             .first();
@@ -133,7 +133,7 @@ router.get('/getIssue/:issueId', userAuthMiddleware, async (req, res) => {
         }
 
 
-        const issue = await (await databaseManager.getKnex())('issues')
+        const issue = await (await db())('issues')
             .where({ id: issueId })
             .select(
                 'issues.id',
@@ -157,7 +157,7 @@ router.get('/getIssuesByCourierId', userAuthMiddleware, async (req, res) => {
 
         const userId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
             .first();
@@ -166,7 +166,7 @@ router.get('/getIssuesByCourierId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const issues = await (await databaseManager.getKnex())('issues')
+        const issues = await (await db())('issues')
             .join('delivery', 'issues.delivery_id', 'delivery.id')
             .join('users', 'delivery.courier_id', 'users.id')
             .where({ 'delivery.courier_id': userId })
