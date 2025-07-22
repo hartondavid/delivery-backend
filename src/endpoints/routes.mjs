@@ -22,7 +22,7 @@ router.post('/addRoute', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const idResult = await (await db())('routes').insert({ area, admin_id: userId });
+        const idResult = await (await db())('routes').insert({ area, admin_id: userId }).returning('id');
         const id = Array.isArray(idResult) ? idResult[0] : idResult;
         const route = await (await db())('routes').where({ id }).first();
         return sendJsonResponse(res, true, 201, "Rută adăugată cu succes!", { route });

@@ -23,7 +23,7 @@ router.post('/addIssue/:deliveryId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const idResult = await (await db())('issues').insert({ description, delivery_id: deliveryId });
+        const idResult = await (await db())('issues').insert({ description, delivery_id: deliveryId }).returning('id');
         const id = Array.isArray(idResult) ? idResult[0] : idResult;
 
         return sendJsonResponse(res, true, 201, "Problema a fost adăugată cu succes!", { id });

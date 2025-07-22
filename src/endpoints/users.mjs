@@ -330,13 +330,10 @@ router.post('/addCourier', userAuthMiddleware, async (req, res) => {
 
             const rightCode = await (await db())('rights').where('right_code', 2).first();
 
-            await (await db())('user_rights')
-
-                .where({ user_id: newUserId })
-                .insert({
-                    user_id: newUserId,
-                    right_id: rightCode.id
-                });
+            await (await db())('user_rights').insert({
+                user_id: newUserId,
+                right_id: rightCode.id
+            });
 
             sendJsonResponse(res, true, 201, "Curierul a fost creat cu succes", { id: newUserId });
         } else {

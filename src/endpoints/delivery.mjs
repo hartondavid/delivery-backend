@@ -21,7 +21,7 @@ router.post('/addDelivery', userAuthMiddleware, async (req, res) => {
         }
 
 
-        const idResult = await (await db())('delivery').insert({ admin_id: userId });
+        const idResult = await (await db())('delivery').insert({ admin_id: userId }).returning('id');
         const id = Array.isArray(idResult) ? idResult[0] : idResult;
 
         const delivery = await (await db())('delivery').where({ id }).first();
