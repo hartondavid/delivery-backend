@@ -46,17 +46,15 @@ app.use((req, res, next) => {
     console.log('🔍 CORS Debug - Starts with localhost:', origin?.startsWith('http://localhost:'));
 
     if (origin && (
-        origin.startsWith('https://sweet-booking-frontend.vercel.app') ||
-        origin.startsWith('https://sweetbooking.davidharton.online') ||
+        origin.startsWith('https://delivery.davidharton.online') ||
         origin.startsWith('http://localhost:') ||
-        origin === 'https://sweet-booking-frontend-kem59jbf1.vercel.app' ||
-        origin === 'https://sweet-booking-frontend-8hjfby3kc.vercel.app'
+       
     )) {
         console.log('✅ CORS Debug - Setting origin to:', origin);
         res.header('Access-Control-Allow-Origin', origin);
     } else {
         console.log('⚠️ CORS Debug - Using default origin');
-        res.header('Access-Control-Allow-Origin', 'https://sweetbooking.davidharton.online');
+        res.header('Access-Control-Allow-Origin', 'https://delivery.davidharton.online');
     }
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
