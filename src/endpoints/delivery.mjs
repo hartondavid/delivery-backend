@@ -243,7 +243,7 @@ router.post('/assignCourierToDelivery/:deliveryId', userAuthMiddleware, async (r
         const courier = await (await db())('users').where({ id: courier_id }).first();
         if (!delivery || !courier) return sendJsonResponse(res, false, 404, "Livrarea sau curierul nu există!", []);
         await (await db())('delivery').where({ id: deliveryId }).update({ courier_id: courier_id });
-        const updated = await (await databaseManager.getKnex())('delivery').where({ id: deliveryId }).first();
+        const updated = await (await db())('delivery').where({ id: deliveryId }).first();
         return sendJsonResponse(res, true, 200, `Curierul a fost atribuit livrării ${deliveryId}!`, { delivery: updated });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la atribuirea curierului!", { details: error.message });
