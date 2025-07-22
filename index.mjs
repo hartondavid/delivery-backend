@@ -42,15 +42,13 @@ app.use((req, res, next) => {
     // Set CORS headers for all requests - allow frontend domain and subdomains
     const origin = req.headers.origin;
     console.log('🔍 CORS Debug - Origin:', origin);
-    console.log('🔍 CORS Debug - Starts with sweet-booking-frontend:', origin?.startsWith('https://sweet-booking-frontend.vercel.app'));
+    console.log('🔍 CORS Debug - Starts with delivery.davidharton.online:', origin?.startsWith('https://delivery.davidharton.online'));
     console.log('🔍 CORS Debug - Starts with localhost:', origin?.startsWith('http://localhost:'));
 
+    // Always allow the delivery domain and localhost for development
     if (origin && (
-        origin.startsWith('https://sweet-booking-frontend.vercel.app') ||
         origin.startsWith('https://delivery.davidharton.online') ||
-        origin.startsWith('http://localhost:') ||
-        origin === 'https://sweet-booking-frontend-kem59jbf1.vercel.app' ||
-        origin === 'https://sweet-booking-frontend-8hjfby3kc.vercel.app'
+        origin.startsWith('http://localhost:')
     )) {
         console.log('✅ CORS Debug - Setting origin to:', origin);
         res.header('Access-Control-Allow-Origin', origin);
@@ -67,15 +65,58 @@ app.use((req, res, next) => {
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
         console.log('🔄 OPTIONS preflight request handled');
+        console.log('📋 CORS headers being set for OPTIONS:', {
+            'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
+            'Access-Control-Allow-Methods': res.getHeader('Access-Control-Allow-Methods'),
+            'Access-Control-Allow-Headers': res.getHeader('Access-Control-Allow-Headers')
+        });
         res.sendStatus(200);
         return;
     }
+
+    // Log CORS headers for non-OPTIONS requests
+    console.log('📋 CORS headers set for request:', {
+        'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
+        'Access-Control-Allow-Methods': res.getHeader('Access-Control-Allow-Methods'),
+        'Access-Control-Allow-Headers': res.getHeader('Access-Control-Allow-Headers')
+    });
 
     next();
 });
 
 // CORS is already handled by the custom middleware above
 // app.use(cors(corsOptions)); // Commented out to avoid conflicts
+
+// Specific OPTIONS handler for API routes
+app.options('/api/*', (req, res) => {
+    console.log('🔄 API OPTIONS preflight request handled for:', req.originalUrl);
+
+    const origin = req.headers.origin;
+    console.log('📋 API OPTIONS Origin:', origin);
+
+    // Set CORS headers for API routes
+    if (origin && (
+        origin.startsWith('https://delivery.davidharton.online') ||
+        origin.startsWith('http://localhost:')
+    )) {
+        res.header('Access-Control-Allow-Origin', origin);
+    } else {
+        res.header('Access-Control-Allow-Origin', 'https://delivery.davidharton.online');
+    }
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.header('Access-Control-Expose-Headers', 'X-Auth-Token, X-Total-Count');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400');
+
+    console.log('📋 API CORS headers set:', {
+        'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
+        'Access-Control-Allow-Methods': res.getHeader('Access-Control-Allow-Methods'),
+        'Access-Control-Allow-Headers': res.getHeader('Access-Control-Allow-Headers')
+    });
+
+    res.sendStatus(200);
+});
 
 // Run migrations before starting the server
 const runMigrations = async () => {
