@@ -25,7 +25,7 @@
             "headers": [
                 {
                     "key": "Access-Control-Allow-Origin",
-                    "value": "https://sweetbooking.davidharton.online"
+                    "value": "https://delivery.davidharton.online"
                 },
                 {
                     "key": "Access-Control-Allow-Methods",
