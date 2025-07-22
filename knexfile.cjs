@@ -8,7 +8,8 @@ const baseConfig = {
         directory: './migrations'
     },
     seeds: {
-        directory: './seeds'
+        directory: './seeds',
+        loadExtensions: ['.js', '.cjs']
     }
 };
 

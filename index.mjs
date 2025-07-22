@@ -4,7 +4,7 @@ import express from "express"
 import dotenv from 'dotenv'
 import cors from 'cors'
 import db from './src/utils/database.mjs'
-import corsOptions from './middleware.js'
+// corsOptions defined locally below
 import { readdirSync } from 'fs'
 import { join } from 'path'
 
