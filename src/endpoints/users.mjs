@@ -323,9 +323,10 @@ router.post('/addCourier', userAuthMiddleware, async (req, res) => {
         const userEmail = await (await db())('users').where('email', email).first();
         if (!userEmail) {
             // Insert the new user into the database
-            [newUserId] = await (await db())('users')
+            const userIdResult = await (await db())('users')
                 .insert(userData)
                 .returning('id');
+            newUserId = Array.isArray(userIdResult) ? userIdResult[0] : userIdResult;
 
             const rightCode = await (await db())('rights').where('right_code', 2).first();
 

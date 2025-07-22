@@ -23,9 +23,9 @@ router.post('/addOrder', userAuthMiddleware, async (req, res) => {
         }
 
         const dbInstance = await db();
-        const [id] = await dbInstance('orders').insert({ recipient, phone, address, admin_id: userId, delivery_id: null, status: status });
-        const order = await dbInstance('orders').where({ id }).first();
-        return sendJsonResponse(res, true, 201, "Comanda a fost adăugată cu succes!", { id });
+        const orderResult = await dbInstance('orders').insert({ recipient, phone, address, admin_id: userId, delivery_id: null, status: status }).returning('*');
+        const order = Array.isArray(orderResult) ? orderResult[0] : orderResult;
+        return sendJsonResponse(res, true, 201, "Comanda a fost adăugată cu succes!", { id: order.id });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la adăugarea comenzii!", { details: error.message });
     }
