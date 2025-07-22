@@ -45,10 +45,33 @@ app.use((req, res, next) => {
     console.log('🔍 CORS Debug - Starts with delivery.davidharton.online:', origin?.startsWith('https://delivery.davidharton.online'));
     console.log('🔍 CORS Debug - Starts with localhost:', origin?.startsWith('http://localhost:'));
 
+    // Handle preflight requests FIRST
+    if (req.method === 'OPTIONS') {
+        console.log('🔄 OPTIONS preflight request handled');
+
+        // Set CORS headers for preflight
+        if (origin && (
+            origin.startsWith('https://delivery.davidharton.online') ||
+            origin.startsWith('http://localhost:')
+        )) {
+            res.header('Access-Control-Allow-Origin', origin);
+        } else {
+            res.header('Access-Control-Allow-Origin', 'https://delivery.davidharton.online');
+        }
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+        res.header('Access-Control-Expose-Headers', 'X-Auth-Token, X-Total-Count');
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Max-Age', '86400');
+
+        res.sendStatus(200);
+        return;
+    }
+
+    // Set CORS headers for actual requests
     if (origin && (
         origin.startsWith('https://delivery.davidharton.online') ||
         origin.startsWith('http://localhost:')
-
     )) {
         console.log('✅ CORS Debug - Setting origin to:', origin);
         res.header('Access-Control-Allow-Origin', origin);
@@ -61,13 +84,6 @@ app.use((req, res, next) => {
     res.header('Access-Control-Expose-Headers', 'X-Auth-Token, X-Total-Count');
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Max-Age', '86400');
-
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-        console.log('🔄 OPTIONS preflight request handled');
-        res.sendStatus(200);
-        return;
-    }
 
     next();
 });
@@ -250,19 +266,20 @@ app.get('/health', (req, res) => {
 
 // CORS test endpoint
 app.get('/cors-test', (req, res) => {
-    console.log('CORS test route accessed');
-    console.log('Request origin:', req.headers.origin);
-    console.log('Request method:', req.method);
-    console.log('Request headers:', req.headers);
+    console.log('🌐 CORS test route accessed');
+    console.log('📋 Request origin:', req.headers.origin);
+    console.log('📋 Request method:', req.method);
+    console.log('📋 Request headers:', req.headers);
 
     res.json({
-        message: 'CORS test successful - Updated with subdomain support',
-        timestamp: new Date().toISOString(),
-        origin: req.headers.origin,
-        method: req.method,
-        corsConfigured: true,
-        deployment: 'latest',
-        subdomainSupport: true
+        success: true,
+        message: 'CORS test successful',
+        data: {
+            origin: req.headers.origin,
+            method: req.method,
+            corsConfigured: true,
+            timestamp: new Date().toISOString()
+        }
     });
 });
 
