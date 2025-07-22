@@ -1,5 +1,5 @@
 import { Router } from "express";
-import databaseManager from "../utils/database.mjs";
+import db from "../utils/database.mjs";
 import { sendJsonResponse } from "../utils/utilFunctions.mjs";
 import { userAuthMiddleware } from "../utils/middlewares/userAuthMiddleware.mjs";
 
@@ -22,8 +22,8 @@ router.post('/addOrder', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const [id] = await (await databaseManager.getKnex())('orders').insert({ recipient, phone, address, admin_id: userId, delivery_id: null, status: status });
-        const order = await (await databaseManager.getKnex())('orders').where({ id }).first();
+        const [id] = await (await db())('orders').insert({ recipient, phone, address, admin_id: userId, delivery_id: null, status: status });
+        const order = await (await db())('orders').where({ id }).first();
         return sendJsonResponse(res, true, 201, "Comanda a fost adăugată cu succes!", { id });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la adăugarea comenzii!", { details: error.message });
@@ -48,15 +48,15 @@ router.put('/updateOrder/:orderId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const order = await (await databaseManager.getKnex())('orders').where({ id: orderId }).first();
+        const order = await (await db())('orders').where({ id: orderId }).first();
         if (!order) return sendJsonResponse(res, false, 404, "Comanda nu există!", []);
-        await (await databaseManager.getKnex())('orders').where({ id: orderId }).update({
+        await (await db())('orders').where({ id: orderId }).update({
             recipient: recipient || order.recipient,
             phone: phone || order.phone,
             address: address || order.address,
             status: status || order.status
         });
-        const updated = await (await databaseManager.getKnex())('orders').where({ id: orderId }).first();
+        const updated = await (await db())('orders').where({ id: orderId }).first();
         return sendJsonResponse(res, true, 200, "Comanda a fost actualizată cu succes!", { order: updated });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la actualizarea comenzii!", { details: error.message });
@@ -80,9 +80,9 @@ router.delete('/deleteOrder/:orderId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const order = await (await databaseManager.getKnex())('orders').where({ id: orderId }).first();
+        const order = await (await db())('orders').where({ id: orderId }).first();
         if (!order) return sendJsonResponse(res, false, 404, "Comanda nu există!", []);
-        await (await databaseManager.getKnex())('orders').where({ id: orderId }).del();
+        await (await db())('orders').where({ id: orderId }).del();
         return sendJsonResponse(res, true, 200, "Comanda a fost ștearsă cu succes!", []);
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la ștergerea comenzii!", { details: error.message });
@@ -107,7 +107,7 @@ router.get('/getOrder/:orderId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const order = await (await databaseManager.getKnex())('orders')
+        const order = await (await db())('orders')
             .where('orders.id', orderId)
             .select(
                 'orders.id',
@@ -141,7 +141,7 @@ router.get('/getOrdersByAdminId', userAuthMiddleware, async (req, res) => {
         }
 
 
-        const orders = await (await databaseManager.getKnex())('orders')
+        const orders = await (await db())('orders')
             .join('users', 'orders.admin_id', 'users.id')
             .select(
                 'orders.id',
@@ -177,7 +177,7 @@ router.get('/getOrdersByCourierId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const orders = await (await databaseManager.getKnex())('orders')
+        const orders = await (await db())('orders')
             .join('delivery', 'orders.delivery_id', 'delivery.id')
             .where('delivery.courier_id', req.user.id)
             .select(
@@ -221,7 +221,7 @@ router.get('/searchOrder', userAuthMiddleware, async (req, res) => {
         }
 
         // Query the database to search for employees where name contains the searchField
-        const orders = await (await databaseManager.getKnex())('orders')
+        const orders = await (await db())('orders')
 
             .where('delivery_id', null)
             .where(function () {
@@ -260,7 +260,7 @@ router.get('/getOrdersByDeliveryId/:deliveryId', userAuthMiddleware, async (req,
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const orders = await (await databaseManager.getKnex())('orders')
+        const orders = await (await db())('orders')
             .join('delivery', 'orders.delivery_id', 'delivery.id')
             .where('delivery.id', deliveryId)
             .select(

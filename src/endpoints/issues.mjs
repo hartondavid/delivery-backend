@@ -1,5 +1,5 @@
 import { Router } from "express";
-import databaseManager from "../utils/database.mjs";
+import db from "../utils/database.mjs";
 import { sendJsonResponse } from "../utils/utilFunctions.mjs";
 import { userAuthMiddleware } from "../utils/middlewares/userAuthMiddleware.mjs";
 
@@ -23,7 +23,7 @@ router.post('/addIssue/:deliveryId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const [id] = await (await databaseManager.getKnex())('issues').insert({ description, delivery_id: deliveryId });
+        const [id] = await (await db())('issues').insert({ description, delivery_id: deliveryId });
 
         return sendJsonResponse(res, true, 201, "Problema a fost adăugată cu succes!", { id });
     } catch (error) {
@@ -50,13 +50,13 @@ router.put('/updateIssue/:issueId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const issue = await (await databaseManager.getKnex())('issues').where({ id: issueId }).first();
+        const issue = await (await db())('issues').where({ id: issueId }).first();
         if (!issue) return sendJsonResponse(res, false, 404, "Problema nu există!", []);
-        await (await databaseManager.getKnex())('issues').where({ id: issueId }).update({
+        await (await db())('issues').where({ id: issueId }).update({
             description: description || issue.description,
             delivery_id: delivery_id || issue.delivery_id
         });
-        const updated = await (await databaseManager.getKnex())('issues').where({ id: issueId }).first();
+        const updated = await (await db())('issues').where({ id: issueId }).first();
         return sendJsonResponse(res, true, 200, "Problema a fost actualizată cu succes!", { issue: updated });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la actualizarea problemei!", { details: error.message });
@@ -81,9 +81,9 @@ router.delete('/deleteIssue/:issueId', userAuthMiddleware, async (req, res) => {
         }
 
 
-        const issue = await (await databaseManager.getKnex())('issues').where({ id: issueId }).first();
+        const issue = await (await db())('issues').where({ id: issueId }).first();
         if (!issue) return sendJsonResponse(res, false, 404, "Problema nu există!", []);
-        await (await databaseManager.getKnex())('issues').where({ id: issueId }).del();
+        await (await db())('issues').where({ id: issueId }).del();
         return sendJsonResponse(res, true, 200, "Problema a fost ștearsă cu succes!", []);
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la ștergerea problemei!", { details: error.message });

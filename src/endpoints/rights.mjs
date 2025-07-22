@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { userAuthMiddleware } from "../utils/middlewares/userAuthMiddleware.mjs";
-import databaseManager from "../utils/database.mjs";
+import db from "../utils/database.mjs";
 import { sendJsonResponse } from "../utils/utilFunctions.mjs";
 
 const router = Router();
 
 router.get('/getUserRights', userAuthMiddleware, async (req, res) => {
     try {
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where({ user_id: req.user.id })
             .select(
