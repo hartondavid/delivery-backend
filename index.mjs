@@ -32,10 +32,8 @@ try {
     console.log('No .env file found, using environment variables');
 }
 
-// Basic middleware
-app.use(express.json());
-
 // Add CORS for frontend access - Direct configuration (Updated for Vercel deployment)
+// This MUST be the first middleware to handle preflight requests
 app.use((req, res, next) => {
     console.log(`🌐 ${req.method} ${req.url} - Origin: ${req.headers.origin || 'none'}`);
 
@@ -45,30 +43,7 @@ app.use((req, res, next) => {
     console.log('🔍 CORS Debug - Starts with delivery.davidharton.online:', origin?.startsWith('https://delivery.davidharton.online'));
     console.log('🔍 CORS Debug - Starts with localhost:', origin?.startsWith('http://localhost:'));
 
-    // Handle preflight requests FIRST
-    if (req.method === 'OPTIONS') {
-        console.log('🔄 OPTIONS preflight request handled');
-
-        // Set CORS headers for preflight
-        if (origin && (
-            origin.startsWith('https://delivery.davidharton.online') ||
-            origin.startsWith('http://localhost:')
-        )) {
-            res.header('Access-Control-Allow-Origin', origin);
-        } else {
-            res.header('Access-Control-Allow-Origin', 'https://delivery.davidharton.online');
-        }
-        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-        res.header('Access-Control-Expose-Headers', 'X-Auth-Token, X-Total-Count');
-        res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Max-Age', '86400');
-
-        res.sendStatus(200);
-        return;
-    }
-
-    // Set CORS headers for actual requests
+    // ALWAYS set CORS headers for all requests
     if (origin && (
         origin.startsWith('https://delivery.davidharton.online') ||
         origin.startsWith('http://localhost:')
@@ -85,11 +60,60 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Max-Age', '86400');
 
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        console.log('🔄 OPTIONS preflight request handled');
+        console.log('📋 CORS headers set:', {
+            'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
+            'Access-Control-Allow-Methods': res.getHeader('Access-Control-Allow-Methods'),
+            'Access-Control-Allow-Headers': res.getHeader('Access-Control-Allow-Headers')
+        });
+        res.sendStatus(200);
+        return;
+    }
+
+    console.log('📋 CORS headers set for request:', {
+        'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
+        'Access-Control-Allow-Methods': res.getHeader('Access-Control-Allow-Methods'),
+        'Access-Control-Allow-Headers': res.getHeader('Access-Control-Allow-Headers')
+    });
+
     next();
 });
 
+// Basic middleware
+app.use(express.json());
+
 // CORS is already handled by the custom middleware above
 // app.use(cors(corsOptions)); // Commented out to avoid conflicts
+
+// Specific OPTIONS handler for API routes
+app.options('/api/*', (req, res) => {
+    console.log('🔄 API OPTIONS preflight request handled for:', req.originalUrl);
+
+    const origin = req.headers.origin;
+    if (origin && (
+        origin.startsWith('https://delivery.davidharton.online') ||
+        origin.startsWith('http://localhost:')
+    )) {
+        res.header('Access-Control-Allow-Origin', origin);
+    } else {
+        res.header('Access-Control-Allow-Origin', 'https://delivery.davidharton.online');
+    }
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.header('Access-Control-Expose-Headers', 'X-Auth-Token, X-Total-Count');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400');
+
+    console.log('📋 API CORS headers set:', {
+        'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
+        'Access-Control-Allow-Methods': res.getHeader('Access-Control-Allow-Methods'),
+        'Access-Control-Allow-Headers': res.getHeader('Access-Control-Allow-Headers')
+    });
+
+    res.sendStatus(200);
+});
 
 // Run migrations before starting the server
 const runMigrations = async () => {
@@ -283,7 +307,33 @@ app.get('/cors-test', (req, res) => {
     });
 });
 
+// CORS verification endpoint
+app.get('/cors-verify', (req, res) => {
+    console.log('🔍 CORS verification request');
+    console.log('📋 Origin:', req.headers.origin);
+    console.log('📋 Method:', req.method);
 
+    // Check if CORS headers are set
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
+        'Access-Control-Allow-Methods': res.getHeader('Access-Control-Allow-Methods'),
+        'Access-Control-Allow-Headers': res.getHeader('Access-Control-Allow-Headers'),
+        'Access-Control-Allow-Credentials': res.getHeader('Access-Control-Allow-Credentials')
+    };
+
+    console.log('📋 CORS headers:', corsHeaders);
+
+    res.json({
+        success: true,
+        message: 'CORS verification',
+        data: {
+            origin: req.headers.origin,
+            method: req.method,
+            corsHeaders: corsHeaders,
+            timestamp: new Date().toISOString()
+        }
+    });
+});
 
 // Test database endpoint (not protected)
 app.get('/test-db', async (req, res) => {
@@ -695,6 +745,36 @@ app.post('/login', async (req, res) => {
             data: []
         });
     }
+});
+
+// Test login endpoint (for CORS testing)
+app.post('/test-login-cors', (req, res) => {
+    console.log('🔐 Test login CORS request');
+    console.log('📋 Origin:', req.headers.origin);
+    console.log('📋 Method:', req.method);
+    console.log('📋 Body:', req.body);
+
+    // Check if CORS headers are set
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
+        'Access-Control-Allow-Methods': res.getHeader('Access-Control-Allow-Methods'),
+        'Access-Control-Allow-Headers': res.getHeader('Access-Control-Allow-Headers'),
+        'Access-Control-Allow-Credentials': res.getHeader('Access-Control-Allow-Credentials')
+    };
+
+    console.log('📋 CORS headers:', corsHeaders);
+
+    res.json({
+        success: true,
+        message: 'Test login CORS endpoint working',
+        data: {
+            origin: req.headers.origin,
+            method: req.method,
+            body: req.body,
+            corsHeaders: corsHeaders,
+            timestamp: new Date().toISOString()
+        }
+    });
 });
 
 // 404 handler for undefined routes
