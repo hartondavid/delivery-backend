@@ -1,5 +1,5 @@
 import { Router } from "express";
-import databaseManager from "../utils/database.mjs";
+import db from "../utils/database.mjs";
 import bcrypt from "bcrypt";
 import { getAuthToken, md5Hash, sendJsonResponse } from "../utils/utilFunctions.mjs";
 import { userAuthMiddleware } from "../utils/middlewares/userAuthMiddleware.mjs";
@@ -14,7 +14,7 @@ router.get('/test-db', async (req, res) => {
         console.log('🔍 Testing database connection...');
 
         // Test database connection
-        const knex = await databaseManager.getKnex();
+        const knex = await db();
         await knex.raw('SELECT 1');
         console.log('✅ Database connection successful');
 
@@ -60,7 +60,7 @@ router.post('/test-token', async (req, res) => {
         console.log('✅ Token verified:', decodedToken);
 
         // Get user from database
-        const user = await (await databaseManager.getKnex())('users').where({ id: decodedToken.id }).first();
+        const user = await (await db())('users').where({ id: decodedToken.id }).first();
 
         if (!user) {
             return sendJsonResponse(res, false, 404, "User not found", []);
@@ -93,7 +93,7 @@ router.post('/login', async (req, res) => {
             return sendJsonResponse(res, false, 400, "Email and password are required", []);
         }
         // Fetch user from database
-        const user = await (await databaseManager.getKnex())('users').where({ email }).first();
+        const user = await (await db())('users').where({ email }).first();
 
         if (!user) {
             return sendJsonResponse(res, false, 401, "Invalid credentials", []);
@@ -109,7 +109,7 @@ router.post('/login', async (req, res) => {
         // Generate JWT token
         const token = getAuthToken(user.id, user.phone, false, '1d', true)
 
-        await (await databaseManager.getKnex())('users')
+        await (await db())('users')
             .where({ id: user.id })
             .update({ last_login: parseInt(Date.now() / 1000) });
 
@@ -139,7 +139,7 @@ router.get('/checkLogin', userAuthMiddleware, async (req, res) => {
 // Get customer profile
 router.get('/profile/:userId', async (req, res) => {
     try {
-        const user = await (await databaseManager.getKnex())('users').where({ id: req.params.userId }).first();
+        const user = await (await db())('users').where({ id: req.params.userId }).first();
         if (!user) return sendJsonResponse(res, false, 404, "User not found", []);
 
         return sendJsonResponse(res, true, 200, "User fetched successfully", { id: user.id, name: user.name, email: user.email, created_at: user.created_at });
@@ -155,7 +155,7 @@ router.put('updatePassword/:userId', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        await (await databaseManager.getKnex())('users').where({ id: req.params.userId }).update({ password: hashedPassword });
+        await (await db())('users').where({ id: req.params.userId }).update({ password: hashedPassword });
         return sendJsonResponse(res, true, 200, "Password updated", []);
     } catch (err) {
         return sendJsonResponse(res, false, 500, "Failed to update password", { details: err.message });
@@ -164,7 +164,7 @@ router.put('updatePassword/:userId', async (req, res) => {
 
 router.get('/getCouriers', userAuthMiddleware, async (req, res) => {
     try {
-        const users = await (await databaseManager.getKnex())('users')
+        const users = await (await db())('users')
             .join('user_rights', 'users.id', 'user_rights.user_id')
             .where('user_rights.right_id', 2)
             .select('users.*');
@@ -179,7 +179,7 @@ router.get('/getCouriers', userAuthMiddleware, async (req, res) => {
 router.get('/getAllCouriersByAdminId', userAuthMiddleware, async (req, res) => {
     try {
 
-        const userRights = await (await databaseManager.getKnex())('user_rights').where({ user_id: req.user.id })
+        const userRights = await (await db())('user_rights').where({ user_id: req.user.id })
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 1)
             .first();
@@ -189,7 +189,7 @@ router.get('/getAllCouriersByAdminId', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat sa accesati aceasta pagina!", []);
         }
 
-        const users = await (await databaseManager.getKnex())('users')
+        const users = await (await db())('users')
             .join('user_rights', 'users.id', 'user_rights.user_id')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
@@ -213,7 +213,7 @@ router.get('/searchCourier', userAuthMiddleware, async (req, res) => {
 
     try {
         // Query the database to search for employees where name contains the searchField
-        const couriers = await (await databaseManager.getKnex())('users')
+        const couriers = await (await db())('users')
             .join('user_rights', 'users.id', 'user_rights.user_id')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 2)
@@ -221,7 +221,7 @@ router.get('/searchCourier', userAuthMiddleware, async (req, res) => {
                 this.where('users.name', 'like', `%${searchField}%`)
                     .orWhere('users.email', 'like', `%${searchField}%`)
             })
-            .whereNotIn('users.id', (await databaseManager.getKnex())('user_routes').select('courier_id'))
+            .whereNotIn('users.id', (await db())('user_routes').select('courier_id'))
             .select('users.*');
 
 
@@ -242,7 +242,7 @@ router.post('/addCourierToRoute/:routeId', userAuthMiddleware, async (req, res) 
     const userId = req.user?.id;
     const routeId = req.params.routeId;
 
-    const userRights = await (await databaseManager.getKnex())('user_rights')
+    const userRights = await (await db())('user_rights')
         .join('rights', 'user_rights.right_id', 'rights.id')
         .where({ 'user_rights.user_id': userId, 'rights.right_code': 2 })
         .first();
@@ -251,8 +251,8 @@ router.post('/addCourierToRoute/:routeId', userAuthMiddleware, async (req, res) 
         if (userRights) {
             return sendJsonResponse(res, false, 403, "Doar administratorii pot adăuga curieri!", []);
         }
-        await (await databaseManager.getKnex())('user_routes').insert({ courier_id: courier_id, route_id: routeId });
-        const courier = await (await databaseManager.getKnex())('users').where({ id: courier_id }).first();
+        await (await db())('user_routes').insert({ courier_id: courier_id, route_id: routeId });
+        const courier = await (await db())('users').where({ id: courier_id }).first();
         return sendJsonResponse(res, true, 200, "Curierul a fost adăugat la ruta!", { courier });
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la asocierea comenzilor la livrare!", { details: error.message });
@@ -311,7 +311,7 @@ router.post('/addCourier', userAuthMiddleware, async (req, res) => {
             return sendJsonResponse(res, false, 400, "Emailul nu este valid", null);
         }
 
-        const phoneExists = await (await databaseManager.getKnex())('users').where('phone', userData.phone).first();
+        const phoneExists = await (await db())('users').where('phone', userData.phone).first();
         if (phoneExists) {
             return sendJsonResponse(res, false, 400, "Numărul de telefon este deja înregistrat", null);
         }
@@ -320,16 +320,16 @@ router.post('/addCourier', userAuthMiddleware, async (req, res) => {
 
         let newUserId;
         // let rightCode;
-        const userEmail = await (await databaseManager.getKnex())('users').where('email', email).first();
+        const userEmail = await (await db())('users').where('email', email).first();
         if (!userEmail) {
             // Insert the new user into the database
-            [newUserId] = await (await databaseManager.getKnex())('users')
+            [newUserId] = await (await db())('users')
                 .insert(userData)
                 .returning('id');
 
-            const rightCode = await (await databaseManager.getKnex())('rights').where('right_code', 2).first();
+            const rightCode = await (await db())('rights').where('right_code', 2).first();
 
-            await (await databaseManager.getKnex())('user_rights')
+            await (await db())('user_rights')
 
                 .where({ user_id: newUserId })
                 .insert({
@@ -358,7 +358,7 @@ router.delete('/deleteCourier/:courierId', userAuthMiddleware, async (req, res) 
 
         const loggedUserId = req.user.id;
 
-        const userRights = await (await databaseManager.getKnex())('user_rights')
+        const userRights = await (await db())('user_rights')
             .join('rights', 'user_rights.right_id', 'rights.id')
             .where('rights.right_code', 1)
             .where('user_rights.user_id', loggedUserId)
@@ -368,12 +368,12 @@ router.delete('/deleteCourier/:courierId', userAuthMiddleware, async (req, res) 
             return sendJsonResponse(res, false, 403, "Nu sunteti autorizat!", []);
         }
 
-        const user = await (await databaseManager.getKnex())('users').where({ id: courierId }).first();
+        const user = await (await db())('users').where({ id: courierId }).first();
         if (!user) return sendJsonResponse(res, false, 404, "Curierul nu există!", []);
 
         console.log('user', user);
 
-        await (await databaseManager.getKnex())('users').where({ id: courierId }).del();
+        await (await db())('users').where({ id: courierId }).del();
         return sendJsonResponse(res, true, 200, "Curierul a fost șters cu succes!", []);
     } catch (error) {
         return sendJsonResponse(res, false, 500, "Eroare la ștergerea ingredientului!", { details: error.message });
